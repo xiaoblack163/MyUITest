@@ -219,23 +219,6 @@ const Utilss=reactive({
             console.log('error', '获取测试步骤排序数据!', error);
         }
     },
-    // //更新测试步骤排序数据
-    // PutStepOrder(toast,caseID,step_order_data){
-    //     fetch(stores.host + '/step_order', {
-    //         method: 'PUT',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({"caseID":caseID,"step_order_data":step_order_data})
-    //     })
-    //         .then((response) => response.json())
-    //         .then((data) => {
-    //             console.log(data);
-    //             toast.add({ severity: 'info', summary: '测试步骤排序', detail: data.detail, life: 3000 });
-    //         })
-    //         .catch((error) => {
-    //             console.log('error', '请求错误！', error);
-    //             toast.add({ severity: 'error', summary: '测试步骤排序', detail: '无法添加此用例排序!', life: 3000 });
-    //         });
-    // },
     //获取单个测试步骤数据
     async GetCaseStepTest(toast,step_id){
         try {
@@ -312,16 +295,42 @@ const Utilss=reactive({
             console.log('error', '初始化定位方式错误！', error);
         }
     },
-    // 初始化动作
+    // 初始化定位与动作映射
     async initAction(toast){
         try {
-            const response = await fetch(stores.host + '/init/step_data/action_option', {
+            const response = await fetch(stores.host + '/init/step_data/locatOption_actionOption', {
                 method: 'GET',
             });
             const data = await response.json();
             return data;
         } catch (error) {
             toast.add({ severity: 'error', summary: '错误', detail: '初始化动作错误!', life: 3000 });
+            console.log('error', '初始化动作错误', error);
+        }
+    },
+    // check操作值是否为空
+    async checkActionValue(toast){
+        try {
+            const response = await fetch(stores.host + '/init/step_data/check_action_value', {
+                method: 'GET',
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            toast.add({ severity: 'error', summary: '错误', detail: '初始化校验动作!', life: 3000 });
+            console.log('error', '初始化动作错误', error);
+        }
+    },
+    // check定位值是否为空
+    async checkLocatValue(toast){
+        try {
+            const response = await fetch(stores.host + '/init/step_data/check_locat_value', {
+                method: 'GET',
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            toast.add({ severity: 'error', summary: '错误', detail: '初始化校验定位!', life: 3000 });
             console.log('error', '初始化动作错误', error);
         }
     },
@@ -406,16 +415,11 @@ const Utilss=reactive({
             });
             const data = await response.json();
             if (data.run_status===true){
-                toast.add({ severity: 'info', summary: '测试执行中..', life: 3000 });
+                toast.add({ severity: 'info', summary: '测试执行中..', detail: "请勿最小化或者关闭测试浏览器\n可置顶其他应用窗口",life: 6000 });
+            }else{
+                toast.add({ severity: 'info', summary: '暂无测试任务执行', detail: "",life: 3000 });
             }
             return data
-            // if (data.activity){
-            //     ;
-            // }else{
-            //     return {
-                    
-            //     }
-            // }
         } catch (error) {
             console.log('error', '请求错误！', error);
         }
@@ -460,6 +464,17 @@ const Utilss=reactive({
             const data = await response.json();
             console.log(data)
             return data
+        } catch (error) {
+            console.log('error', '请求错误！', error);
+        }
+    },
+    //获取对执行日志
+    async GetRunLog(){
+        try {
+            const response = await fetch(stores.host + '/run_case/log', {
+                method: 'GET',
+            });
+            return response.json()
         } catch (error) {
             console.log('error', '请求错误！', error);
         }

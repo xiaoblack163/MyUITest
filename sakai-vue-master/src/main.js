@@ -109,7 +109,8 @@ import VirtualScroller from 'primevue/virtualscroller';
 // import BlockViewer from '@/components/BlockViewer.vue';
 import InputOtp from 'primevue/inputotp';
 import MeterGroup from 'primevue/MeterGroup';
-
+import Stepper from 'primevue/stepper';
+import StepperPanel from 'primevue/stepperpanel';
 
 import '@/assets/styles.scss';
 
@@ -229,6 +230,9 @@ app.component('TriStateCheckbox', TriStateCheckbox);
 app.component('VirtualScroller', VirtualScroller);
 app.component('InputOtp', InputOtp);
 app.component('MeterGroup', MeterGroup);
+app.component('Stepper', Stepper );
+app.component('StepperPanel', StepperPanel  );
+
 
 
 app.mount('#app');

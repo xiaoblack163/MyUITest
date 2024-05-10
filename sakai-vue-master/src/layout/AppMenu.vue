@@ -13,15 +13,15 @@ import AppMenuItem from './AppMenuItem.vue';
 const model = ref([
     {
         label: '首页',
-        items: [{ label: '仪表盘', icon: 'pi pi-fw pi-home', to: '/' }]
+        items: [{ label: '仪表盘', icon: 'pi pi-fw pi-chart-bar', to: '/' }]
     },
     {
         label: '测试管理',
         items: [
-            { label: '用例管理', icon: 'pi pi-fw pi-bookmark', to: '/uikit/caseManager' },
-            { label: '用例总览', icon: 'pi pi-fw pi-bookmark', to: '/uikit/caseView'},
-            { label: '测试顺序', icon: 'pi pi-fw pi-bookmark' ,to: '/uikit/testSort'},
-            { label: '环境配置', icon: 'pi pi-fw pi-bookmark', to: '/uikit/testEnv'},
+            { label: '用例管理', icon: 'pi pi-fw pi-th-large', to: '/uikit/caseManager' },
+            { label: '用例总览', icon: 'pi pi-fw pi-flag', to: '/uikit/caseView'},
+            { label: '测试顺序', icon: 'pi pi-fw pi-sitemap' ,to: '/uikit/testSort'},
+            { label: '环境配置', icon: 'pi pi-fw pi-sliders-h', to: '/uikit/testEnv'},
         ]
     },
     {
@@ -29,12 +29,13 @@ const model = ref([
         items: [
             {
                 label: '执行测试',
-                icon: 'pi pi-fw pi-question',
+                icon: 'pi pi-fw pi-forward',
                 to: '/uikit/runCase'
             },
             {
                 label: '运行日志',
-                icon: 'pi pi-fw pi-pencil'
+                icon: 'pi pi-fw pi-question-circle',
+                to: '/uikit/runLog'
             }
         ]
     },
@@ -43,36 +44,28 @@ const model = ref([
         items: [
             {
                 label: '测试报告',
-                icon: 'pi pi-fw pi-question',
+                icon: 'pi pi-fw pi-external-link',
                 to: '/uikit/report'
             },
             {
                 label: '详细报告',
-                icon: 'pi pi-fw pi-pencil',
+                icon: 'pi pi-fw pi-gift',
                 to: '/uikit/detailReport'
             }
             
         ]
     },
     {
-        label: '录制',
-        items: [{ label: '录制定位值', icon: 'pi pi-fw pi-home' }]
-    },
-    {
         label: '控制台',
         items: [
-        { label: '测试文档', icon: 'pi pi-fw pi-bookmark'},
-        { label: '测试附件', icon: 'pi pi-fw pi-bookmark'},
-            { 
-                label: '管理配置', 
-                icon: 'pi pi-fw pi-home' 
-            },
-            {
-                label: '接口文档',
-                icon: 'pi pi-fw pi-pencil',
-                url: storee.host + '/redoc',
-                target: '_blank'
-            }
+        { label: '测试文档', icon: 'pi pi-fw pi-wallet'},
+        { label: '测试附件', icon: 'pi pi-fw pi-tags'},
+            // {
+            //     label: '接口文档',
+            //     icon: 'pi pi-fw pi-link',
+            //     url: storee.host + '/redoc',
+            //     target: '_blank'
+            // }
         ]
     }
 ]);

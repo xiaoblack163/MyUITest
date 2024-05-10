@@ -57,6 +57,11 @@ const router = createRouter({
                     path: '/uikit/testSort',
                     name: 'testSort',
                     component: () => import('@/views/uikit/testSort.vue')
+                },
+                {
+                    path: '/uikit/runLog',
+                    name: 'runLog',
+                    component: () => import('@/views/uikit/runLog.vue')
                 }
             ]
         },

@@ -14,31 +14,37 @@ def stop(self, video_name=None):
         video_name = f'{video_name}.webm'
     name = f'{time()}.webm' if not video_name else video_name
     path = f'{self._path}{sep}{name}'
-
     self._enable = False
-    while self._running:
-        sleep(.1)
 
+    for _ in range(30):
+        if self._running:
+            print("就是当年年底s")
+            sleep(.3)
+            continue
+        else:
+            break
+    else:
+        ...
+        print("设置运行胡宗南柜台啊的方法对付那就客气你看人家撒旦接口返回会计师大后方看")
+        raise
+        
+
+        
     if not str(self._path).isascii():
         raise TypeError('转换成视频仅支持英文路径和文件名。')
-
     try:
         from cv2 import VideoWriter, imread, VideoWriter_fourcc
         from numpy import fromfile, uint8
     except ModuleNotFoundError:
         raise ModuleNotFoundError('请先安装cv2，pip install opencv-python')
-
     pic_list = Path(self._tmp_path or self._path).glob('*.jpg')
     img = imread(str(next(pic_list)))
     imgInfo = img.shape
     size = (imgInfo[1], imgInfo[0])
-
     videoWrite = VideoWriter(path, VideoWriter_fourcc(*"VP80"), 5, size)
-
     for i in pic_list:
         img = imread(str(i))
         videoWrite.write(img)
-
     rmtree(self._tmp_path)
     self._tmp_path = None
     return f'{self._path}{sep}{name}'

@@ -1,5 +1,5 @@
 import json
-from typing import Dict,List,Any,Optional
+from typing import List,Optional
 from pydantic import BaseModel
 
 TEST_ORDER_PATH = "MyUITestDB/test_order.json"
@@ -34,8 +34,6 @@ def init_test_order():
     except:
         with open (TEST_ORDER_PATH,'w') as f:
             json.dump([],f)
-
-# init_test_order()
 
 # 读取测试排序
 def read_test_order():

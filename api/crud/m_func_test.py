@@ -4,7 +4,7 @@ from MyUITestDB.db import engine
 from crud.m_tabel_model import FuncTest,CaseTest
 from crud.m_case_test import delete_case_test
 from crud.m_test_order import read_func_order,post_func_order,put_func_order,delete_func_order
-
+from crud.m_operation_log import post_operation_log
 
 
 # 添加测试功能
@@ -16,6 +16,10 @@ def post_func_test(func_test:FuncTest):
 
     # 添加测试排序
     post_func_order(func_test.funcID,func_test.funcName)
+    
+    # 添加操作日志
+    post_operation_log("添加了测试功能",func_test.funcName)
+
     return {"detail": "Success"}
 
 # 获取所有测试功能
@@ -46,6 +50,10 @@ def put_func_test(func_name: str, new_name: str):
 
     # 更新测试排序
     put_func_order(func_name,new_name)
+
+    # 添加操作日志
+    post_operation_log("修改了测试功能",new_name)
+
     return {"detail": "Success"}
 
 # 删除测试功能
@@ -63,6 +71,8 @@ def delete_func_test(func_name: str):
     # 删除测试排序
     delete_func_order(func_name)
 
+    # 添加操作日志
+    post_operation_log("删除了测试功能",func_name)
 
     # 删除casetest表
     with Session(engine) as session:
@@ -74,8 +84,6 @@ def delete_func_test(func_name: str):
         for db_func_test in db_func_tests:  
             # 删除用例时不再删除用例排序
             delete_case_test(db_func_test.funcID,db_func_test.caseName,modify_order=False)
-
-
 
     return {"detail": "Success"}
 

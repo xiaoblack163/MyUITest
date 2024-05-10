@@ -3,6 +3,7 @@ from MyUITestDB.db import engine
 from crud.m_tabel_model import CaseTest,FuncTest,StepData
 from crud.m_step_data import delete_step_data
 from crud.m_test_order import read_case_order,post_case_order,put_case_order,delete_case_order
+from crud.m_operation_log import post_operation_log
 
 
 
@@ -30,6 +31,9 @@ def post_case_test(case_test:CaseTest):
 
     # 新建测试用例排序
     post_case_order(case_test.funcID,case_test.caseID,case_test.caseName)
+
+    # 添加操作日志
+    post_operation_log("添加了测试用例",case_test.caseName)
 
     return {"detail": "Success"}
 
@@ -67,6 +71,10 @@ def put_case_test(func_id:str,case_name: str, new_name: str):
         session.refresh(db_case_test)
     # 更新测试排序
     put_case_order(func_id,case_name,new_name)
+
+    # 添加操作日志
+    post_operation_log("修改了测试用例",new_name)
+
     return {"detail": "Success"}    
 
 # 删除测试用例
@@ -84,6 +92,8 @@ def delete_case_test(func_id:str,case_name: str,modify_order:bool):
     # 删除测试排序
     if modify_order:  
         delete_case_order(db_case_test.funcID,db_case_test.caseID)
+        # 添加操作日志
+        post_operation_log("删除了测试用例",db_case_test.caseName)
 
     # 删除stepdata表
     with Session(engine) as session:

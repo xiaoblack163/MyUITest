@@ -211,12 +211,12 @@ onBeforeMount(async () => {
 
         <div class="col-12 xl:col-6">
             <div class="card">
-                <h5>近期FAIL测试</h5>
-                <DataTable :value="FailDetailReportRecord" :rows="5" :paginator="true" responsiveLayout="scroll">
+                <span style="font: 1.3em sans-serif;">近期</span><span style="font: 1.3em sans-serif;color:#EC4899;">FAIL</span><span style="font: 1.3em sans-serif;">测试步骤</span>
+                <DataTable :value="FailDetailReportRecord" :rows="6" :paginator="true"  rowHover=true  responsiveLayout="scroll">
                     <Column style="width: 15%">
                         <template #header>截图</template>
                         <template #body="slotProps">
-                            <Image preview :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="1" width="50" class="shadow-2" />
+                            <Image preview :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="50" class="shadow-2" />
                         </template>
                     </Column>
                     <Column field="stepName" header="步骤名称" style="width: 50%"></Column>
@@ -226,7 +226,7 @@ onBeforeMount(async () => {
                         </template>
                     </Column>
                     <Column style="width: 10%">
-                        <template #header>View</template>
+                        <template #header>详细</template>
                         <template #body="{ data }">
                             <Button @click="toDetailReport(data.reportID)"  icon="pi pi-search" type="button" class="p-button-text"></Button>
                         </template>
@@ -234,10 +234,8 @@ onBeforeMount(async () => {
                 </DataTable>
             </div>
             <div class="card">
-                <div class="flex justify-content-between align-items-center mb-5">
-                    <h5>近期测试报告</h5>
-                </div>
-                <DataTable :value="ReportRecord"  :rows="10" dataKey="id" :rowHover="true" size="large" >
+                <span style="font: 1.3em sans-serif;">近期</span><span style="font: 1.3em sans-serif;color:#43C667;">版本</span><span style="font: 1.3em sans-serif;">测试报告</span>
+                <DataTable :value="ReportRecord"  :rows="10" dataKey="id" rowHover=true size="large" >
                     <Column header="版本" field="version" style="width: 20%"></Column>
                     <Column header="测试时间" field="testDate"  style="width: 40%"></Column>
                     <Column field="result" header="结果" dataType="boolean" style="width: 15%">

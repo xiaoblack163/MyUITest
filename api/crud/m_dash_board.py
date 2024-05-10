@@ -21,7 +21,7 @@ def get_record_count():
 # 获取近期FAIL测试
 def get_fail_detail_report_record():
     with Session(engine) as session:
-        result = session.exec(select(DetailReport.detailReportID,DetailReport.reportID,DetailReport.stepName,DetailReport.result,DetailReport.execDate).where(DetailReport.result==False).order_by(DetailReport.execDate.desc()).limit(10)).mappings().all()
+        result = session.exec(select(DetailReport.detailReportID,DetailReport.reportID,DetailReport.stepName,DetailReport.result,DetailReport.execDate).where(DetailReport.result==False).order_by(DetailReport.execDate.desc()).limit(12)).mappings().all()
     print(result)
     return result
 

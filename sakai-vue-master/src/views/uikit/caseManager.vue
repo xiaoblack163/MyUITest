@@ -1,5 +1,7 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue';
+import { ref, onBeforeMount, watch } from 'vue';
+import { useConfirm } from "primevue/useconfirm";
+const confirm = useConfirm();
 import { inject } from 'vue';
 const utilss = inject('utilss');
 
@@ -14,12 +16,12 @@ const selectedFuncs = ref(); // 功能列表
 const caselistValue = ref(); // 用例列表
 
 // 弹窗并加载功能列表
-const toggle2 =  async (event) => {
+const toggle2 = async (event) => {
     // 弹窗
     op2.value.toggle(event);
 
     //获取功能列表
-    selectedFuncs.value =  await utilss.GetFuncTest(toast)
+    selectedFuncs.value = await utilss.GetFuncTest(toast);
 };
 
 // 选择功能后加载测试用例
@@ -29,10 +31,10 @@ const selectFunc = async (funcNameID2) => {
         funcNameID2 = { funcName: '全部功能', funcID: '全部功能' };
         funcNameID.value = { funcName: '全部功能', funcID: '全部功能' };
         // 加载所有测试用例
-        caselistValue.value = await utilss.GetCaseTests(toast)
-    }else{
+        caselistValue.value = await utilss.GetCaseTests(toast);
+    } else {
         // 加载对应功能测试用例
-        caselistValue.value = await utilss.GetFuncCaseTest(toast,funcNameID2.funcID)
+        caselistValue.value = await utilss.GetFuncCaseTest(toast, funcNameID2.funcID);
     }
     op2.value.toggle();
 };
@@ -107,20 +109,20 @@ const crudFuncOrCase = async () => {
         case '添加测试用例':
             let tmpcaseID = crypto.randomUUID();
             console.log('添加测试用例', FuncID.value, '输入值:', DigInput1.value);
-            utilss.PostCaseTest(toast,FuncID.value,DigInput1.value,tmpcaseID)
+            utilss.PostCaseTest(toast, FuncID.value, DigInput1.value, tmpcaseID);
             // utilss.PostStepOrder(toast,tmpcaseID)
             // 刷新对应功能测试用例
             setTimeout(async () => {
-                caselistValue.value = await utilss.GetFuncCaseTest(toast,FuncID.value)
-            },500)
+                caselistValue.value = await utilss.GetFuncCaseTest(toast, FuncID.value);
+            }, 500);
             break;
         case '删除测试用例':
             console.log('删除测试用例', FuncID.value, '输入值:', DigInput1.value);
-            utilss.DeleteCaseTest(toast,FuncID.value,DigInput1.value)
+            utilss.DeleteCaseTest(toast, FuncID.value, DigInput1.value);
             // 刷新对应功能测试用例
             setTimeout(async () => {
-                caselistValue.value = await utilss.GetFuncCaseTest(toast,FuncID.value)
-            },500)
+                caselistValue.value = await utilss.GetFuncCaseTest(toast, FuncID.value);
+            }, 500);
             break;
         case '重命名测试用例':
             if (!DigInput2.value) {
@@ -129,24 +131,24 @@ const crudFuncOrCase = async () => {
                 return false;
             }
             console.log('重命名测试用例', FuncID.value, '输入值1:', DigInput1.value, '输入值2:', DigInput2.value);
-            utilss.PutCaseTest(toast,FuncID.value,DigInput1.value,DigInput2.value)
+            utilss.PutCaseTest(toast, FuncID.value, DigInput1.value, DigInput2.value);
             // 刷新对应功能测试用例
             setTimeout(async () => {
-                caselistValue.value = await utilss.GetFuncCaseTest(toast,FuncID.value)
-            },500)
+                caselistValue.value = await utilss.GetFuncCaseTest(toast, FuncID.value);
+            }, 500);
             break;
         case '新增功能':
             console.log('新增功能', '输入值:', DigInput1.value);
-            if (DigInput1.value==='全部功能'){
+            if (DigInput1.value === '全部功能') {
                 toast.add({ severity: 'info', summary: '信息', detail: '无法添加此功能!', life: 3000 });
-                return false
+                return false;
             }
-            utilss.PostFuncTest(toast,DigInput1.value)
+            utilss.PostFuncTest(toast, DigInput1.value);
             break;
         case '删除功能':
             console.log('删除功能', '输入值:', DigInput1.value);
-            utilss.DeleteFuncTest(toast,DigInput1.value)
-            caselistValue.value = await utilss.GetCaseTests(toast) // 重新获取测试用例数据
+            utilss.DeleteFuncTest(toast, DigInput1.value);
+            caselistValue.value = await utilss.GetCaseTests(toast); // 重新获取测试用例数据
             break;
         case '重命名功能':
             if (!DigInput2.value) {
@@ -155,13 +157,13 @@ const crudFuncOrCase = async () => {
                 return false;
             }
             console.log('重命名功能', '输入值1:', DigInput1.value, '输入值2:', DigInput2.value);
-            utilss.PutFuncTest(toast,DigInput1.value,DigInput2.value)
+            utilss.PutFuncTest(toast, DigInput1.value, DigInput2.value);
             break;
     }
 };
 
 // 用例用例选项
-const saveStepMode = ref(null) // 保存步骤时为post还是put
+const saveStepMode = ref(null); // 保存步骤时为post还是put
 const stepfuncs = [
     {
         label: '添加测试步骤',
@@ -173,43 +175,20 @@ const stepfuncs = [
                 locatMode: '',
                 locatValue: '',
                 elementNumber: 1,
-                xyValue: '',
+                xValue: 0,
+                yValue: 0,
                 action: '',
                 AssertOrActionValue: '',
                 stepInfo: '',
                 caseID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1],
                 caseName: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0],
-                funcID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[2],
+                funcID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[2]
             };
-            saveStepMode.value = 'POST'
+            saveStepMode.value = 'POST';
             console.log('添加测试步骤', stepData);
         }
     }
 ];
-
-// #################################################################################
-
-// 打开步骤列表，获取步骤列表数据
-const op = ref();
-const selectedSteps = ref([])
-const selecteStepData = ref([])
-const toggle = async (event, funcID,caseID) => {
-    op.value.toggle(event);
-    selectedSteps.value = await utilss.GetStepOrder(toast,funcID,caseID)
-
-};
-
-// #################################################################################
-
-// 获取步骤数据
-const getStepData = async (selecteStepData) => {
-    console.log('获取步骤数据', selecteStepData.stepName, selecteStepData.stepID, selecteStepData.funcID,selecteStepData.caseID);
-    stepData.value = await utilss.GetCaseStepTest(toast,selecteStepData.stepID)
-    saveStepMode.value = 'PUT'
-    toast.add({ severity: 'info', summary: '切换步骤', detail: selecteStepData.stepName, life: 3000 });
-    op.value.toggle();
-    selecteStepData.value = null
-};
 
 // #################################################################################
 
@@ -220,13 +199,17 @@ const stepData = ref({
     locatMode: '',
     locatValue: '',
     elementNumber: 1,
-    xyValue: '',
+    xValue: 0,
+    yValue: 0,
     action: '',
     AssertOrActionValue: '',
     stepInfo: '',
     caseID: '',
-    funcID: '',
+    funcID: ''
 });
+
+// 切换定位方式模式,获取步骤时watch不重置操作与断言值
+const locatModeChangeMode = ref('')
 
 // 选择定位方式
 const locatOption = ref(null);
@@ -234,12 +217,49 @@ const locatOption = ref(null);
 // 操作与断言
 const actionOption = ref(null);
 
+// 定位与操作映射
+const locatOption_actionOption = ref('');
+
+// 定位值
+const locatMode = ref('');
+
+// 校验定位值
+const checkLocatValue = ref('');
+
+// 校验操作值
+const checkActionValue = ref('');
+
+// #################################################################################
+
+// 打开步骤列表，获取步骤列表数据
+const op = ref();
+const selectedSteps = ref([]);
+const selecteStepData = ref([]);
+const toggle = async (event, funcID, caseID) => {
+    op.value.toggle(event);
+    selectedSteps.value = await utilss.GetStepOrder(toast, funcID, caseID);
+};
+
+// #################################################################################
+
+// 获取步骤数据
+const getStepData = async (selecteStepData) => {
+    stepData.value = await utilss.GetCaseStepTest(toast, selecteStepData.stepID);
+    locatModeChangeMode.value = "获取步骤数据"
+    locatMode.value = stepData.value.locatMode
+
+    saveStepMode.value = 'PUT';
+    toast.add({ severity: 'info', summary: '切换步骤', detail: selecteStepData.stepName, life: 3000 });
+    op.value.toggle();
+    selecteStepData.value = null;
+};
+
+
 // #################################################################################
 
 // 提交步骤数据
 const saveData = () => {
-    console.log(stepData.value.xyValue)
-    // return false
+    stepData.value.locatMode = locatMode;
     if (stepData.value.stepID === '' || stepData.value.stepID === null) {
         toast.add({ severity: 'error', summary: '错误', detail: '步骤ID不能为空!', life: 3000 });
         return false;
@@ -252,29 +272,22 @@ const saveData = () => {
     } else if (stepData.value.stepName === '') {
         toast.add({ severity: 'warn', summary: '警告', detail: '步骤名称不能为空!', life: 3000 });
         return false;
-    } else if (stepData.value.action === '') {
-        toast.add({ severity: 'warn', summary: '警告', detail: '请选择操作或者断言!', life: 3000 });
-        return false;
-    } else if (stepData.value.action.value === '登录' && stepData.value.AssertOrActionValue === '') {
-        toast.add({ severity: 'warn', summary: '警告', detail: '请输入登录信息\nadm/Machloop@123', life: 3000 });
-        return false;
-    } else if (stepData.value.action.value === '输入' && stepData.value.AssertOrActionValue === '') {
-        toast.add({ severity: 'warn', summary: '警告', detail: '输入参数不能为空!', life: 3000 });
-        return false;
     } else if (stepData.value.locatMode === '') {
         toast.add({ severity: 'warn', summary: '警告', detail: '请选择定位方式!', life: 3000 });
         return false;
-    } else if (stepData.value.locatMode.value === '无需定位' && !["发送流量","访问网页","登录","关闭浏览器","刷新页面","选择时间"].includes(stepData.value.action.value)) {
-        toast.add({ severity: 'warn', summary: '警告', detail: '请选择合适的定位方式!', life: 3000 });
-        return false;
-    } else if (stepData.value.locatValue === '' && ["文字识别","目标检测","文本","XPATH","CSS","自定义"].includes(stepData.value.locatMode.value)) {
+    } else if (checkLocatValue.value.includes(stepData.value.locatMode.value) && stepData.value.locatValue === '') {
         toast.add({ severity: 'warn', summary: '警告', detail: '请输入定位值!', life: 3000 });
         return false;
-    } else if (stepData.value.locatMode.value === '绝对坐标' && stepData.value.xyValue==='') {
+    } else if (stepData.value.action === '') {
+        toast.add({ severity: 'warn', summary: '警告', detail: '请选择操作或者断言!', life: 3000 });
+        return false;
+    } else if (Object.keys(checkActionValue.value).includes(stepData.value.action.value) && stepData.value.AssertOrActionValue === '') {
+        toast.add({ severity: 'warn', summary: '警告', detail: '请输入操作或断言参数!\n' + checkActionValue.value[stepData.value.action.value], life: 3000 });
+        return false;
+    } else if (stepData.value.locatMode.value === '绝对坐标' && stepData.value.xValue === 0 && stepData.value.xValue === 0) {
         toast.add({ severity: 'warn', summary: '警告', detail: '绝对坐标错误!', life: 3000 });
         return false;
     }
-    
     utilss.PostStepData(toast,saveStepMode.value,stepData.value);
 };
 
@@ -283,7 +296,7 @@ const uploadFile = async (event) => {
     if (stepData.value.stepID === '' || stepData.value.stepID === null) {
         toast.add({ severity: 'warn', summary: '警告', detail: '步骤ID不能为空!', life: 3000 });
         return false;
-    }else{
+    } else {
         const formData = new FormData();
         formData.append('file', event.files[0]);
         console.log(event.files[0]);
@@ -298,10 +311,50 @@ const DeleteStepData = () => {
     if (stepData.value.stepID === '' || stepData.value.stepID === null) {
         toast.add({ severity: 'warn', summary: '警告', detail: '步骤ID不能为空!', life: 3000 });
         return false;
-    }else{
-        utilss.DeleteStepData(toast,stepData.value.stepID);
+    } else {
+        utilss.DeleteStepData(toast, stepData.value.stepID);
     }
 };
+
+
+const confirm2 = (event) => {
+    confirm.require({
+        target: event.currentTarget,
+        message: '删除步骤?',
+        icon: 'pi pi-info-circle',
+        rejectClass: 'p-button-secondary p-button-outlined p-button-sm',
+        acceptClass: 'p-button-danger p-button-sm',
+        rejectLabel: '取消',
+        acceptLabel: '确认',
+        accept: () => {
+            DeleteStepData()
+        },
+        reject: () => {
+            console.log('取消')
+        }
+    });
+};
+
+// #################################################################################
+
+watch(locatMode, (newValue) => {
+    // 只有切换定位方式时清空数据,获取步骤时不清空
+    if (locatModeChangeMode.value === '切换定位方式'){
+        stepData.value.action = '';
+        stepData.value.AssertOrActionValue = '';
+        stepData.value.locatValue = '';
+    }
+    if (newValue.value === '无需定位') {
+        actionOption.value = locatOption_actionOption.value['无需定位'];
+    } else if (['文本', 'ID', 'XPATH', 'CSS', '自定义'].includes(newValue.value)) {
+        actionOption.value = locatOption_actionOption.value['标签定位'];
+    } else if (['文字识别', '目标检测', '绝对坐标', '图像识别'].includes(newValue.value)) {
+        actionOption.value = locatOption_actionOption.value['坐标定位'];
+    } else {
+        actionOption.value = '';
+    }
+});
+
 // #################################################################################
 
 onBeforeMount(async () => {
@@ -309,17 +362,25 @@ onBeforeMount(async () => {
     funcNameID.value = { funcName: '全部功能', funcID: '全部功能' };
 
     // 初始化测试用例列表
-    caselistValue.value = await utilss.GetCaseTests(toast)
+    caselistValue.value = await utilss.GetCaseTests(toast);
 
     // 初始化定位方式
     locatOption.value = await utilss.initLocation(toast);
 
     // 初始化操作与断言
-    actionOption.value = await utilss.initAction(toast);
+    locatOption_actionOption.value = await utilss.initAction(toast);
+
+    // check操作值是否为空
+    checkActionValue.value = await utilss.checkActionValue(toast);
+
+    // check定位值是否为空
+    checkLocatValue.value = await utilss.checkLocatValue(toast);
 });
 </script>
 
 <template>
+    <!-- 删除确认框 -->
+    <ConfirmPopup></ConfirmPopup> 
     <!-- 功能与用例crud弹窗 -->
     <Dialog v-model:visible="showDig" modal :header="ActionDig" :style="{ width: '25rem' }">
         <div class="flex align-items-center gap-3 mb-3">
@@ -399,7 +460,7 @@ onBeforeMount(async () => {
             <div class="card p-fluid">
                 <h5>测试用例列表</h5>
                 <div v-for="item in caselistValue" :key="item.caseID" :id="item.caseName + '<->' + item.caseID + '<->' + item.funcID" class="field">
-                    <SplitButton :model="stepfuncs" @click="toggle($event,item.funcID, item.caseID)" :key="item.caseID" :id="item.caseName + '<->' + item.caseID + '<->' + item.funcID">
+                    <SplitButton :model="stepfuncs" @click="toggle($event, item.funcID, item.caseID)" :key="item.caseID" :id="item.caseName + '<->' + item.caseID + '<->' + item.funcID">
                         <span class="flex align-items-center font-bold">
                             <i class="pi pi-star" style="height: 1rem; margin-right: 0.5rem"></i>
                             <span>{{ item.caseName }}</span>
@@ -424,28 +485,17 @@ onBeforeMount(async () => {
                         <Button label="保存" @click="saveData" />
                     </div>
                     <div class="field col-12 md:col-2">
-                        <Button label="删除" @click="DeleteStepData" />
+                        <Button @click="confirm2($event)" label="删除" outlined></Button>
                     </div>
                 </div>
             </div>
-            <div class="card p-fluid">
-                <h5>操作与断言</h5>
-                <p class="text-color-secondary block mb-5">请输入操作与断言.</p>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <CascadeSelect v-model="stepData.action" :options="actionOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择操作与断言" />
-                    </div>
-                    <div class="field col">
-                        <InputText id="lastname1" v-model="stepData.AssertOrActionValue" style="width: 100%" type="text" placeholder="请输入参数" />
-                    </div>
-                </div>
-            </div>
+
             <div class="card p-fluid">
                 <h5>定位方式与定位值</h5>
                 <p class="text-color-secondary block mb-5">请选择定位方式并填写定位值.</p>
                 <div class="formgrid grid">
                     <div class="field col-12 md:col-5">
-                        <CascadeSelect v-model="stepData.locatMode" :options="locatOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择定位方式" />
+                        <CascadeSelect @change="locatModeChangeMode='切换定位方式'" v-model="locatMode" :options="locatOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择定位方式" />
                     </div>
                     <div class="field col-12 md:col-5">
                         <InputText id="lastname1" v-model="stepData.locatValue" style="width: 100%" type="text" placeholder="请输入定位值" />
@@ -455,6 +505,20 @@ onBeforeMount(async () => {
                     </div>
                 </div>
             </div>
+
+            <div class="card p-fluid">
+                <h5>操作与断言</h5>
+                <p class="text-color-secondary block mb-5">请输入操作与断言.</p>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <CascadeSelect v-model="stepData.action" :options="actionOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择操作与断言" />
+                    </div>
+                    <div class="field col">
+                        <InputText id="lastname1" v-model="stepData.AssertOrActionValue" style="width: 100%" type="text" placeholder="请输入操作或断言参数" />
+                    </div>
+                </div>
+            </div>
+
             <div class="card p-fluid">
                 <div class="formgrid grid">
                     <div class="col-12 md:col-6">
@@ -463,7 +527,17 @@ onBeforeMount(async () => {
                             <div class="formgrid grid">
                                 <div class="field col">
                                     <p class="text-color-secondary block mb-5">请输入绝对定位坐标.</p>
-                                    <InputMask id="basic" v-model="stepData.xyValue" mask="x:9999     y:9999" placeholder="x-y" />
+                                    
+                                    
+                                    <div class="formgrid grid">
+                                        <div class="field col">
+                                            <InputNumber v-model="stepData.xValue"  placeholder="请输入x坐标"  :min="-1920" :max="1920" />
+                                        </div>
+                                        <div class="field col">
+                                            <InputNumber v-model="stepData.yValue"  placeholder="请输入y坐标"  :min="-1080" :max="1080" />
+                                        </div>
+                                    </div>
+                                    <!-- <InputMask id="basic" v-model="stepData.xyValue" mask="$+99$ 9999" placeholder="x-y" /> -->
                                 </div>
                             </div>
                         </div>
@@ -471,7 +545,7 @@ onBeforeMount(async () => {
                     <div class="col-12 md:col-6">
                         <div class="card p-fluid">
                             <h5>上传定位图片</h5>
-                            <FileUpload  name="demo[]" :showCancelButton="false" :showUploadButton="false" :fileLimit="1" @select="uploadFile($event)" accept="image/*" :maxFileSize="1000000" customUpload />
+                            <FileUpload name="demo[]" :showCancelButton="false" :showUploadButton="false" :fileLimit="1" @select="uploadFile($event)" accept="image/*" :maxFileSize="1000000" customUpload />
                             <!-- <FileUpload  name="demo[]" :multiple="false" accept="image/*" :maxFileSize="1000000" customUpload /> -->
                         </div>
                     </div>

@@ -5,10 +5,14 @@ from ipaddress import IPv4Address
 
 from crud.m_test_order import read_test_order
 from crud.m_step_data import get_step_data_join
-from runTest.m_action import WebDriver
 from crud.m_report import post_report,Report
 from crud.m_detail_chart import post_detail_chart,DetailChart
 from crud.m_detail_report import post_detail_report,DetailReport
+from crud.m_operation_log import post_operation_log
+
+from runTest.m_action import WebDriver
+from runTest.m_log import FormatLog
+
 
 # 定义前后端交互的测试数据结构
 class RunTestData(BaseModel):
@@ -19,43 +23,47 @@ class RunTestData(BaseModel):
 
 # 执行测试的对象(整理测试数据，写入测试结果)
 class TestExecutor:
-    def __init__(self,manager,stop_event,shared_data,run_test_data:Dict[str, Any]) -> None:
+    def __init__(self,stop_event,shared_data,run_test_data:Dict[str, Any]) -> None:
         self.testID = str(uuid.uuid4()) # 测试报告ID
         self.testDate = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) # 测试时间
         self.stop_event = stop_event # 停止运行信号
         self.shared_data = shared_data # 进程间共享数据
         self.test_order_data = self.parseCase(run_test_data) # 解析测试数据
-        self.init_shared_data(manager,run_test_data) # 初始化共享数据
-        self.webdriver = WebDriver(run_test_data["testEnv"]) # 创建webdriver对象
-    
+        self.init_shared_data(run_test_data) # 初始化共享数据
+        self.webdriver = WebDriver(run_test_data["testEnv"],stop_event,self.formatLog) # 创建webdriver对象
+        
+
     # 初始化共享数据
-    def init_shared_data(self,manager,run_test_data):
+    def init_shared_data(self,run_test_data):
         # 测试状态
         self.shared_data["run_status"] = True
 
         # 测试环境
-        self.shared_data["testEnv"] = manager.dict()
+        self.shared_data["testEnv"] = {}
         self.shared_data["testEnv"]["testEnv"] = run_test_data["testEnv"]
         self.shared_data["testEnv"]["testor"] = run_test_data["testor"]
         self.shared_data["testEnv"]["version"] = run_test_data["version"]
 
         # 测试进度
-        self.shared_data["activity"] = manager.dict()
+        self.shared_data["activity"] = {}
         self.shared_data["activity"]["funcNumber"]=str(self.test_order_data).count("funcName") #功能数
         self.shared_data["activity"]["caseNumber"]=str(self.test_order_data).count("caseName")#用例总数
         self.shared_data["activity"]["stepNumber"]=str(self.test_order_data).count("stepName")#步骤总数
         self.shared_data["activity"]["testedNumber"]= 0 #已测步骤数
         self.shared_data["activity"]["passNumber"]=0 #通过数
         self.shared_data["activity"]["execFailNumber"]=0 #执行失败数
-        self.shared_data["activity"]["assertpassNumber"]=0 #断言失败数
+        self.shared_data["activity"]["assertFailNumber"]=0 #断言失败数
 
         # 测试进度图表
-        self.shared_data["funcChart"] = manager.dict()
-        self.shared_data["funcChart"]["passNumber"] = manager.dict()  # 测试功能通过数list
-        self.shared_data["funcChart"]["failNumber"] = manager.dict()  # 测试功能失败数list
+        self.shared_data["funcChart"] = {}
+        self.shared_data["funcChart"]["passNumber"] = {}  # 测试功能通过数list
+        self.shared_data["funcChart"]["failNumber"] = {}   # 测试功能失败数list
         for funcTest in self.test_order_data:
             self.shared_data["funcChart"]["passNumber"][funcTest["funcName"]] = 0
             self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] = 0
+        #添加操作日志和运行日志
+        self.formatLog = FormatLog(self.shared_data,list(self.shared_data["funcChart"]["passNumber"]))
+        post_operation_log("执行了测试",str(list(self.shared_data["funcChart"]["passNumber"])).replace("[","").replace("]", "").replace("'", ""))
 
     # 解析测试数据
     def parseCase(self,run_test_data):
@@ -117,7 +125,8 @@ class TestExecutor:
             locatMode = stepReportData["locatMode"],
             locatValue = stepReportData["locatValue"],
             elementNumber = stepReportData["elementNumber"],
-            xyValue = stepReportData["xyValue"],
+            xValue = stepReportData["xValue"],
+            yValue = stepReportData["yValue"],
             action = stepReportData["action"],
             AssertOrActionValue = stepReportData["AssertOrActionValue"],
             stepInfo = stepReportData["stepInfo"],
@@ -132,17 +141,19 @@ class TestExecutor:
     # 执行测试
     def runTest(self):
         for funcTest in self.test_order_data:
-            print("\033[0;34m测试功能开始执行:\033[0m",funcTest["funcName"])
+            self.formatLog.change_funcName(funcTest["funcName"])
+            self.formatLog.writeLog("INFO","测试功能开始执行")
             for caseTest in funcTest["children"]:
-                print("\033[0;35m 测试用例开始执行:\033[0m",caseTest["caseName"])
+                self.formatLog.change_caseName(caseTest["caseName"])
+                self.formatLog.writeLog("INFO","测试用例开始执行")
                 self.webdriver.start_screencast() # 开始录屏 测试用例为单位
                 for StepTest in caseTest["grandchild"]:
                     if self.stop_event.is_set():
                         self.webdriver.stop_screencast(self.testID+caseTest["caseID"]) # 停止录屏
                         self.done()
-                        print("捕捉到停止信号，测试终止")
+                        self.formatLog.writeLog("WARN","捕捉到停止信号，测试终止")
                         return 
-                    print("\033[0;37m  测试步骤开始执行:\033[0m",StepTest["stepName"])
+                    self.formatLog.writeLog("INFO","测试步骤开始执行")
                     try:
                         self.shared_data["activity"]["testedNumber"] += 1 #已测步骤加1
                         stepdata = get_step_data_join(StepTest["stepID"]) # 读取步骤相关信息
@@ -150,20 +161,23 @@ class TestExecutor:
                         stepdata["reportID"] = self.testID #报告ID
                         stepdata["execDate"] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) # 步骤执行时间
                         if self.webdriver.start_step(stepdata): # 执行步骤操作
-                            stepdata["result"] = True  # 步骤执行失败加1
-                            stepdata["execInfo"] = "执行步骤成功"  #步骤执行失败信息
+                            stepdata["result"] = True  # 步骤执行成功加1
+                            stepdata["execInfo"] = "执行步骤成功"  #步骤执行成功信息
                             self.shared_data["activity"]["passNumber"] += 1 #通过数加1
                             self.shared_data["funcChart"]["passNumber"][funcTest["funcName"]] += 1# 测试功能通过数加1
+                            self.formatLog.writeStepLog("PASS",StepTest["stepName"],"执行步骤成功")
                         else:
-                            stepdata["result"] = False  #步骤执行失败加1
-                            stepdata["execInfo"] = "断言失败"  #步骤执行失败信息
+                            stepdata["result"] = False  #断言失败加1
+                            stepdata["execInfo"] = "断言失败"  #断言失败信息
                             self.shared_data["activity"]["assertFailNumber"] += 1 #断言失败数加1
                             self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
-                    except:
+                            self.formatLog.writeStepLog("FAIL",StepTest["stepName"],"断言失败")
+                    except Exception as e:
                         stepdata["result"] = False  #步骤执行失败加1
                         stepdata["execInfo"] = "执行失败"  #步骤执行失败信息
                         self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
                         self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
+                        self.formatLog.writeStepLog("ERROR",StepTest["stepName"],"步骤执行失败"+str(e))
                     finally:
                         ...
                         self.writeDetailReport(stepdata) #写入测试步骤结果
@@ -176,3 +190,6 @@ class TestExecutor:
         self.writeDetailChart()
         self.webdriver.page.quit()
         self.shared_data["run_status"] = False
+        self.formatLog.writeLog("INFO","测试执行完毕")
+    
+

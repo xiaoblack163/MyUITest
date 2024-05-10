@@ -42,7 +42,8 @@ const getSeverity = () => {
             </Column>
             <Column field="locatValue" header="定位值" style="min-width: 200px"></Column>
             <Column field="elementNumber" header="元素序号" style="min-width: 200px"></Column>
-            <Column field="xyValue" header="绝对坐标" style="min-width: 200px"></Column>
+            <Column field="xValue" header="x坐标" style="min-width: 100px"></Column>
+            <Column field="yValue" header="y坐标" style="min-width: 100px"></Column>
             <Column field="action" header="动作" style="min-width: 200px"></Column>
             <Column field="AssertOrActionValue" header="输入值" style="min-width: 200px"></Column>
             <Column field="stepInfo" header="步骤说明" style="min-width: 200px"></Column>

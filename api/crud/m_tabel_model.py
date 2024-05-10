@@ -1,6 +1,7 @@
 from typing import  Optional
 from sqlmodel import SQLModel, Field
 
+
 # 测试功能表
 class FuncTest(SQLModel, table=True):
     funcID: str = Field(default=None, primary_key=True)
@@ -19,7 +20,8 @@ class StepData(SQLModel, table=True):
     locatMode: str
     locatValue: str
     elementNumber: Optional[int] =Field(nullable=False)
-    xyValue: str
+    xValue: Optional[int] =Field(nullable=False)
+    yValue: Optional[int] =Field(nullable=False)
     action: str
     AssertOrActionValue: str
     stepInfo: str
@@ -56,7 +58,8 @@ class DetailReport(SQLModel, table=True):
     locatMode: str
     locatValue: str
     elementNumber: Optional[int] =Field(nullable=False)
-    xyValue: str
+    xValue: Optional[int] =Field(nullable=False)
+    yValue: Optional[int] =Field(nullable=False)
     action: str
     AssertOrActionValue: str
     stepInfo: str

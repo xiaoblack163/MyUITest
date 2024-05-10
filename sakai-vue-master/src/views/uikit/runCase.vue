@@ -1,33 +1,15 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useConfirm } from "primevue/useconfirm";
+const confirm = useConfirm();
 import { useToast } from 'primevue/usetoast'; // 弹出提示
 const toast = useToast();
 import { inject } from 'vue';
 const utilss = inject('utilss');
 
-// #####################################################################
-
-// 测试用例tree
-const treeTableValue = ref([]);
-// 提交选测试运行数据
-const runTestData = ref({
-    selectedTreeTableValue:{},// 选择要执行的测试项
-    testEnv:'', //测试环境
-    testor:'', // 测试人
-    version:'',// 测试版本
-});
 
 
-const showRunStatus = () => {
-    if (runTestData.value.testEnv==='' || runTestData.value.testor==='' || runTestData.value.version==='' ){
-        toast.add({ severity: 'warn', summary: '请输入测试参数', life: 3000 });
-        return false
-    }
-    utilss.PostRunTestData(toast,runTestData.value)
-};
-const stopRunTest = () => {
-    utilss.StopRunTest(toast)
-};
+
 
 // #####################################################################
 
@@ -124,23 +106,31 @@ const setChartOptions = () => {
 
 
 // #####################################################################
+// 测试用例tree
+const treeTableValue = ref([]);
+// 提交选测试运行数据
+const runTestData = ref({
+    selectedTreeTableValue:{},// 选择要执行的测试项
+    testEnv:'', //测试环境
+    testor:'', // 测试人
+    version:'',// 测试版本
+});
 
 
 const activity_chart = ref()
-onMounted(async () => {
 
-    treeTableValue.value = await utilss.GetRunCaseTreeData();
 
+const getRunInfo = async () => {
     activity_chart.value = await utilss.GetCaseActivity(toast);
-
-    console.log("啊飒飒的",activity_chart.value)
+    
 
     runTestData.value.testEnv = activity_chart.value.testEnv.testEnv
     runTestData.value.testor = activity_chart.value.testEnv.testor
     runTestData.value.version = activity_chart.value.testEnv.version
 
+
     MeterGroupvalue.value[0].value = (100*(activity_chart.value.activity.execFailNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
-    MeterGroupvalue.value[1].value = (100*(activity_chart.value.activity.assertpassNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
+    MeterGroupvalue.value[1].value = (100*(activity_chart.value.activity.assertFailNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
     MeterGroupvalue.value[2].value = (100*(activity_chart.value.activity.passNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
 
     MeterGroupvalue0.value[0].value = parseInt(activity_chart.value.activity.stepNumber)
@@ -153,15 +143,67 @@ onMounted(async () => {
 
     chartData.value = setChartData(Object.keys(activity_chart.value.funcChart.passNumber),Object.values(activity_chart.value.funcChart.passNumber),Object.values(activity_chart.value.funcChart.failNumber));
     chartOptions.value = setChartOptions();
+}
+
+
+
+// #####################################################################
+
+const startRunTest = () => {
+    if (runTestData.value.testEnv==='' || runTestData.value.testor==='' || runTestData.value.version==='' ){
+        toast.add({ severity: 'warn', summary: '请输入测试参数', life: 3000 });
+        return false
+    }
+    utilss.PostRunTestData(toast,runTestData.value)
+    setTimeout(() => {
+        loading.value = false;
+        getRunInfo()
+    }, 2000);
+};
+
+const loading = ref(false);
+
+const load = () => {
+    loading.value = true;
+    setTimeout(() => {
+        loading.value = false;
+        getRunInfo()
+    }, 2000);
+};
+
+const stopRunTest = () => {
+    utilss.StopRunTest(toast)
+};
+
+const confirm2 = (event) => {
+    confirm.require({
+        target: event.currentTarget,
+        message: '停止测试?',
+        icon: 'pi pi-info-circle',
+        rejectClass: 'p-button-secondary p-button-outlined p-button-sm',
+        acceptClass: 'p-button-danger p-button-sm',
+        rejectLabel: '取消',
+        acceptLabel: '确认',
+        accept: () => {
+            stopRunTest()
+        },
+        reject: () => {
+            console.log("取消")
+        }
+    });
+};
+
+onMounted(async () => {
+    treeTableValue.value = await utilss.GetRunCaseTreeData();
+    getRunInfo()
 });
-
-
 
 </script>
 
 
 
 <template>
+    <ConfirmPopup></ConfirmPopup>
     <div class="card">
         <h5>选择测试用例</h5>
         <TreeTable :value="treeTableValue" selectionMode="checkbox" v-model:selectionKeys="runTestData.selectedTreeTableValue">
@@ -187,8 +229,9 @@ onMounted(async () => {
                 <InputText v-model="runTestData.testor"  style="width: 100%" type="text" placeholder="请输入测试人" />
             </div>
             <div class="field col-12 md:col-3 flex justify-content-between">
-                <Button label="运行测试" @click="showRunStatus" />
-                <Button label="停止测试" @click="stopRunTest" outlined />
+                <Button label="运行测试" @click="startRunTest" />
+                <Button @click="confirm2($event)" label="停止测试" severity="danger" outlined />
+                <Button label="刷新" icon="pi pi-refresh" :loading="loading" @click="load" outlined/>
             </div>
         </div>
     </div>

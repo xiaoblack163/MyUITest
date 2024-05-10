@@ -2,7 +2,7 @@ from sqlmodel import Session, select,text
 from MyUITestDB.db import engine
 from crud.m_tabel_model import StepData
 from crud.m_test_order import put_step_order,post_step_order,delete_step_order
-
+from crud.m_operation_log import post_operation_log
 
 # 添加测试步骤
 def post_step_data(step_data:StepData):
@@ -15,6 +15,9 @@ def post_step_data(step_data:StepData):
             
         # 添加测试步骤排序
         post_step_order(step_data.funcID,step_data.caseID,step_data.stepID,step_data.stepName)
+        
+        # 添加操作日志
+        post_operation_log("添加了测试步骤",step_data.stepName)
         return {"detail": "Success"}
         
     except Exception as e:
@@ -53,6 +56,9 @@ def put_step_data(step_data:StepData):
 
     # 更新测试步骤排序(主要更新测试步骤名称)
     put_step_order(step_data.funcID,step_data.caseID,step_data.stepID,step_data.stepName)            
+    
+    # 添加操作日志
+    post_operation_log("修改了测试步骤",step_data.stepName)
     return {"detail": "Success"}
 
 # 删除测试步骤
@@ -68,6 +74,8 @@ def delete_step_data(step_data_id:str,modify_order:bool):
     # 更新测试步骤排序(主要删除测试步骤)
     if modify_order:
         delete_step_order(db_step_data.funcID,db_step_data.caseID,db_step_data.stepID)
+        # 添加操作日志
+        post_operation_log("删除了测试步骤",db_step_data.stepName)
 
     return {"detail": "Success"}
 
@@ -81,7 +89,8 @@ def get_step_data_join(step_id:str):
             StepData.locatMode,
             StepData.locatValue,
             StepData.elementNumber,
-            StepData.xyValue,
+            StepData.xValue,
+            StepData.yValue,
             StepData.action,
             StepData.AssertOrActionValue,
             StepData.stepInfo,

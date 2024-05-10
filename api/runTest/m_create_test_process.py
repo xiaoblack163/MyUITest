@@ -1,35 +1,73 @@
-from multiprocessing import Process,Event,Manager
-import time
+from threading import Thread,Event
 from runTest.m_test_executor import TestExecutor 
 
 # 创建一个多进程的测试执行对象(连接前端与执行测试的桥梁,共享内存,停止执行等)
 class Create_TestExecutor:
     def __init__(self):
-        self.stop_event = Event() #终止执行的信号
-        self.manager = Manager()
-        self.shared_data = self.manager.dict() #共享内存
+        self.stop_event = Event()  # 创建停止信号
+        self.shared_data  = {
+            "run_status": False,
+            "testEnv": {
+                "testEnv": "",
+                "testor": "",
+                "version": ""
+            },
+            "activity": {
+                "funcNumber": 0,
+                "caseNumber": 0,
+                "stepNumber": 0.1,
+                "testedNumber": 0,
+                "passNumber": 0,
+                "execFailNumber": 0,
+                "assertFailNumber": 0
+            },
+            "funcChart": {
+                "passNumber": {},
+                "failNumber": {}
+            },
+            "logsMap": {"暂无日志":""}
+        }
 
     def reset(self):
-        self.stop_event.clear()
+        self.stop_event.clear()  # 重置停止信号
         self.shared_data.clear()
+        self.shared_data  = {
+            "run_status": False,
+            "testEnv": {
+                "testEnv": "",
+                "testor": "",
+                "version": ""
+            },
+            "activity": {
+                "funcNumber": 0,
+                "caseNumber": 0,
+                "stepNumber": 0.1,
+                "testedNumber": 0,
+                "passNumber": 0,
+                "execFailNumber": 0,
+                "assertFailNumber": 0
+            },
+            "funcChart": {
+                "passNumber": {},
+                "failNumber": {}
+            },
+            "logsMap": {"暂无日志":""}
+        }
 
     def create_worker(self,run_test_data):
         # 创建并启动子进程
         self.reset()
-        testExecutor = TestExecutor(self.manager,self.stop_event,self.shared_data,run_test_data)
-        self.process = Process(target=testExecutor.runTest, args=())
-        self.process.start()
+        testExecutor = TestExecutor(self.stop_event,self.shared_data,run_test_data)
+        self.thread = Thread(target=testExecutor.runTest, args=())
+        self.thread.start()
 
         
     def stop_worker(self):
         # 停止子进程
         print("捕捉到中断信号，正在停止子进程...")
         self.stop_event.set()
-        self.process.join()  # 等待子进程结束
-        time.sleep(30)
-        if self.process.is_alive():
-            print("子进程未正常退出，正在强制终止...")
-            self.process.terminate()
+        self.thread.join()  # 等待子进程结束
+        print("子线程已经结束")
         self.reset()
 
 

@@ -141,7 +141,7 @@ onMounted(async () => {
     activity_chart.value = await utilss.GetDetaiChart(reportID);
 
     MeterGroupvalue.value[0].value = (100*(activity_chart.value.activity.execFailNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
-    MeterGroupvalue.value[1].value = (100*(activity_chart.value.activity.assertpassNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
+    MeterGroupvalue.value[1].value = (100*(activity_chart.value.activity.assertFailNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
     MeterGroupvalue.value[2].value = (100*(activity_chart.value.activity.passNumber/activity_chart.value.activity.stepNumber)).toFixed(1)
 
     MeterGroupvalue0.value[0].value = parseInt(activity_chart.value.activity.stepNumber)
@@ -271,7 +271,8 @@ onMounted(async () => {
             </Column>
             <Column field="locatValue" header="定位值" style="min-width: 200px"></Column>
             <Column field="elementNumber" header="元素序号" style="min-width: 100px"></Column>
-            <Column field="xyValue" header="绝对坐标" style="min-width: 200px"></Column>
+            <Column field="xValue" header="x坐标" style="min-width: 100px"></Column>
+            <Column field="yValue" header="y坐标" style="min-width: 100px"></Column>
             <Column field="stepInfo" header="步骤说明" style="min-width: 200px"></Column>
             <Column field="execInfo" header="步骤执行信息" style="min-width: 200px"></Column>
             <Column field="result" header="测试结果"  frozen alignFrozen="right"  style="min-width: 100px">
