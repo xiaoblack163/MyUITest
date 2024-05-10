@@ -14,16 +14,6 @@ const router = createRouter({
                     component: () => import('@/views/Dashboard.vue')
                 },
                 {
-                    path: '/uikit/formlayout',
-                    name: 'formlayout',
-                    component: () => import('@/views/uikit/FormLayout.vue')
-                },
-                {
-                    path: '/uikit/input',
-                    name: 'input',
-                    component: () => import('@/views/uikit/Input.vue')
-                },
-                {
                     path: '/uikit/caseManager',
                     name: 'caseManager',
                     component: () => import('@/views/uikit/caseManager.vue')

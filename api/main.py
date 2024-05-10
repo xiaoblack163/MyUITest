@@ -26,6 +26,7 @@ createTestExecutor = createTestExecutor =  m_create_test_process.Create_TestExec
 app = FastAPI()
 app.mount("/screenshot", StaticFiles(directory="screenshot"), name="screenshot")
 app.mount("/screencast", StaticFiles(directory="screencast"), name="screencast")
+app.mount("/yoloImages", StaticFiles(directory="yoloImages"), name="yoloImages")
 
 app.add_middleware(
     CORSMiddleware,
@@ -99,6 +100,11 @@ async def action_option():
 @app.get("/init/step_data/check_locat_value")
 async def action_option():
     return m_local_action_option.checkLocatValue
+
+# 目标检测选项，传递给前端
+@app.get("/init/step_data/yolo_option")
+async def action_option():
+    return m_local_action_option.yoloOption
 
 
 ################################################################

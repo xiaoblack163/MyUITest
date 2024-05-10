@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue';
-import { useConfirm } from "primevue/useconfirm";
+import { useConfirm } from 'primevue/useconfirm';
 const confirm = useConfirm();
 import { inject } from 'vue';
+const storee = inject('storee');
 const utilss = inject('utilss');
 
 import { useToast } from 'primevue/usetoast'; // 弹出提示
@@ -209,7 +210,7 @@ const stepData = ref({
 });
 
 // 切换定位方式模式,获取步骤时watch不重置操作与断言值
-const locatModeChangeMode = ref('')
+const locatModeChangeMode = ref('');
 
 // 选择定位方式
 const locatOption = ref(null);
@@ -245,15 +246,14 @@ const toggle = async (event, funcID, caseID) => {
 // 获取步骤数据
 const getStepData = async (selecteStepData) => {
     stepData.value = await utilss.GetCaseStepTest(toast, selecteStepData.stepID);
-    locatModeChangeMode.value = "获取步骤数据"
-    locatMode.value = stepData.value.locatMode
+    locatModeChangeMode.value = '获取步骤数据';
+    locatMode.value = stepData.value.locatMode;
 
     saveStepMode.value = 'PUT';
     toast.add({ severity: 'info', summary: '切换步骤', detail: selecteStepData.stepName, life: 3000 });
     op.value.toggle();
     selecteStepData.value = null;
 };
-
 
 // #################################################################################
 
@@ -288,7 +288,7 @@ const saveData = () => {
         toast.add({ severity: 'warn', summary: '警告', detail: '绝对坐标错误!', life: 3000 });
         return false;
     }
-    utilss.PostStepData(toast,saveStepMode.value,stepData.value);
+    utilss.PostStepData(toast, saveStepMode.value, stepData.value);
 };
 
 // 选择文件时立即上传
@@ -316,7 +316,6 @@ const DeleteStepData = () => {
     }
 };
 
-
 const confirm2 = (event) => {
     confirm.require({
         target: event.currentTarget,
@@ -327,31 +326,41 @@ const confirm2 = (event) => {
         rejectLabel: '取消',
         acceptLabel: '确认',
         accept: () => {
-            DeleteStepData()
+            DeleteStepData();
         },
         reject: () => {
-            console.log('取消')
+            console.log('取消');
         }
     });
 };
 
 // #################################################################################
-
+// 目标检测相关
+const yolo = ref(false);//当前定位方式是否为目标检测
+const yoloValue = ref('');
+const yoloOption = ref([]);
+// #################################################################################
 watch(locatMode, (newValue) => {
     // 只有切换定位方式时清空数据,获取步骤时不清空
-    if (locatModeChangeMode.value === '切换定位方式'){
+    if (locatModeChangeMode.value === '切换定位方式') {
         stepData.value.action = '';
         stepData.value.AssertOrActionValue = '';
         stepData.value.locatValue = '';
     }
     if (newValue.value === '无需定位') {
         actionOption.value = locatOption_actionOption.value['无需定位'];
+        yolo.value = false;
     } else if (['文本', 'ID', 'XPATH', 'CSS', '自定义'].includes(newValue.value)) {
         actionOption.value = locatOption_actionOption.value['标签定位'];
-    } else if (['文字识别', '目标检测', '绝对坐标', '图像识别'].includes(newValue.value)) {
+        yolo.value = false;
+    } else if (['文字识别', , '绝对坐标', '图像识别'].includes(newValue.value)) {
         actionOption.value = locatOption_actionOption.value['坐标定位'];
+        yolo.value = false;
+    } else if (newValue.value === '目标检测') {
+        yolo.value = true;
     } else {
         actionOption.value = '';
+        yolo.value = false;
     }
 });
 
@@ -375,12 +384,15 @@ onBeforeMount(async () => {
 
     // check定位值是否为空
     checkLocatValue.value = await utilss.checkLocatValue(toast);
+
+    // 获取目标检测选项
+    yoloOption.value = await utilss.GetYoloOption()
 });
 </script>
 
 <template>
     <!-- 删除确认框 -->
-    <ConfirmPopup></ConfirmPopup> 
+    <ConfirmPopup></ConfirmPopup>
     <!-- 功能与用例crud弹窗 -->
     <Dialog v-model:visible="showDig" modal :header="ActionDig" :style="{ width: '25rem' }">
         <div class="flex align-items-center gap-3 mb-3">
@@ -495,10 +507,45 @@ onBeforeMount(async () => {
                 <p class="text-color-secondary block mb-5">请选择定位方式并填写定位值.</p>
                 <div class="formgrid grid">
                     <div class="field col-12 md:col-5">
-                        <CascadeSelect @change="locatModeChangeMode='切换定位方式'" v-model="locatMode" :options="locatOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择定位方式" />
+                        <CascadeSelect
+                            @change="locatModeChangeMode = '切换定位方式'"
+                            v-model="locatMode"
+                            :options="locatOption"
+                            style="width: 100%"
+                            optionLabel="value"
+                            optionGroupLabel="value"
+                            :optionGroupChildren="['states']"
+                            placeholder="请选择定位方式"
+                        />
                     </div>
-                    <div class="field col-12 md:col-5">
+                    <div v-if="!yolo" class="field col-12 md:col-5">
                         <InputText id="lastname1" v-model="stepData.locatValue" style="width: 100%" type="text" placeholder="请输入定位值" />
+                    </div>
+                    <div v-if="yolo" class="field col-12 md:col-5">
+                        <Dropdown v-model="yoloValue" :options="yoloOption" placeholder="请选择检测目标">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value" class="flex align-items-center">
+                                    <Image alt="Image" preview>
+                                        <template #image>
+                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.png'" alt="" width="18" />
+                                        </template>
+                                        <template #preview>
+                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.png'" alt="" width="500"/>
+                                        </template>
+                                    </Image>
+                                    <div>{{ slotProps.value }}</div>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                            <template #option="slotProps">
+                                <div class="flex align-items-center">
+                                    <img alt="" :src="storee.host+'/yoloImages/'+slotProps.option+'.png'"  style="width: 18px" />
+                                    <div>{{ slotProps.option }}</div>
+                                </div>
+                            </template>
+                        </Dropdown>
                     </div>
                     <div class="field col-12 md:col-2">
                         <InputNumber v-model="stepData.elementNumber" inputId="minmax-buttons" placeholder="元素序号" mode="decimal" showButtons :min="1" :max="100" />
@@ -527,17 +574,15 @@ onBeforeMount(async () => {
                             <div class="formgrid grid">
                                 <div class="field col">
                                     <p class="text-color-secondary block mb-5">请输入绝对定位坐标.</p>
-                                    
-                                    
+
                                     <div class="formgrid grid">
                                         <div class="field col">
-                                            <InputNumber v-model="stepData.xValue"  placeholder="请输入x坐标"  :min="-1920" :max="1920" />
+                                            <InputNumber v-model="stepData.xValue" placeholder="请输入x坐标" :min="-1920" :max="1920" />
                                         </div>
                                         <div class="field col">
-                                            <InputNumber v-model="stepData.yValue"  placeholder="请输入y坐标"  :min="-1080" :max="1080" />
+                                            <InputNumber v-model="stepData.yValue" placeholder="请输入y坐标" :min="-1080" :max="1080" />
                                         </div>
                                     </div>
-                                    <!-- <InputMask id="basic" v-model="stepData.xyValue" mask="$+99$ 9999" placeholder="x-y" /> -->
                                 </div>
                             </div>
                         </div>

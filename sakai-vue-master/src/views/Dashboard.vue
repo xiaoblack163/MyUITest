@@ -216,7 +216,14 @@ onBeforeMount(async () => {
                     <Column style="width: 15%">
                         <template #header>截图</template>
                         <template #body="slotProps">
-                            <Image preview :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="50" class="shadow-2" />
+                            <Image alt="Image" preview>
+                                <template #image>
+                                    <img :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="50" class="shadow-2"  />
+                                </template>
+                                <template #preview>
+                                    <img :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="1700" class="shadow-2" />
+                                </template>
+                            </Image>
                         </template>
                     </Column>
                     <Column field="stepName" header="步骤名称" style="width: 50%"></Column>

@@ -334,6 +334,18 @@ const Utilss=reactive({
             console.log('error', '初始化动作错误', error);
         }
     },
+    //获取目标检测选项
+    async GetYoloOption(){
+        try {
+            const response = await fetch(stores.host + '/init/step_data/yolo_option', {
+                method: 'GET',
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.log('error', '获取目标检测选项错误!', error);
+        }
+    },
     //获取用例总览数据
     async GetCaseView(){
         try {
