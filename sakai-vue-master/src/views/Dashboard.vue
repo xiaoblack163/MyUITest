@@ -221,7 +221,7 @@ onBeforeMount(async () => {
                                     <img :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="50" class="shadow-2"  />
                                 </template>
                                 <template #preview>
-                                    <img :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="1700" class="shadow-2" />
+                                    <img :src="storee.host + '/screenshot/' + slotProps.data.detailReportID + '.png'" alt="image" width="1500" class="shadow-2" />
                                 </template>
                             </Image>
                         </template>

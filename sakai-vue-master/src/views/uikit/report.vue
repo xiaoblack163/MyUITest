@@ -70,9 +70,10 @@ onBeforeMount(async () => {
                     <i class="pi" :class="{ 'text-green-500 pi-check-circle': data.result, 'text-pink-500 pi-times-circle': !data.result }"></i>
                 </template>
             </Column>
-            <Column headerStyle="width: 5rem; text-align: center" frozen alignFrozen="right" bodyStyle="text-align: center; overflow: visible">
+            <Column headerStyle="width: 10rem; text-align: center" frozen alignFrozen="right" bodyStyle="text-align: center; overflow: visible">
                 <template #body="{ data }">
-                    <Button @click="toDetailReport(data.reportID)" type="button" icon="pi pi-search" rounded />
+                    <Button @click="toDetailReport(data.reportID)" type="button" icon="pi pi-star" rounded />
+                    <Button style="margin-left: 1rem;" @click="toDetailReport(data.reportID)" type="button" icon="pi pi-align-left" rounded />
                 </template>
             </Column>
         </DataTable>

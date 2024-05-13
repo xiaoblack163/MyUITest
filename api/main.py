@@ -16,9 +16,9 @@ from crud import m_case_view
 from crud import m_report
 from crud import m_detail_chart
 from crud import m_detail_report
+from crud import m_test_env
+from crud import m_test_set
 
-
-from runTest import m_test_executor
 from runTest import m_create_test_process
 
 createTestExecutor = createTestExecutor =  m_create_test_process.Create_TestExecutor()
@@ -264,7 +264,7 @@ async def get_run_case_tree_data():
 
 # 执行测试
 @app.post("/run_case")
-async  def post_run_test_data(run_test_data: m_test_executor.RunTestData):
+async  def post_run_test_data(run_test_data: m_create_test_process.RunTestData):
     run_test_data = run_test_data.model_dump()
     if run_test_data["selectedTreeTableValue"] == {}:
         return {"detail":[{"msg":"请选择测试项!"}]}
@@ -316,7 +316,44 @@ async def get_detail_reports(report_id:str):
 
 ################################################################
 
+# 添加测试环境
+@app.post("/test_env")
+async def post_test_env(test_env:m_test_env.TestEnv):
+    return m_test_env.post_test_env(test_env)
 
+
+# 获取测试环境
+@app.get("/test_envs")
+async def get_test_envs():
+    return m_test_env.get_test_envs()
+
+# 获取单个测试环境
+@app.get("/test_env/{test_env_ip}",response_model=m_test_env.TestEnv)
+async def get_test_env(test_env_ip:str):
+    return m_test_env.get_test_env(test_env_ip)
+
+# 修改测试环境
+@app.put("/test_env")
+async def put_test_env(test_env:m_test_env.TestEnv):
+    return m_test_env.put_test_env(test_env)
+
+# 删除测试环境
+@app.delete("/test_env/{test_env_ip}")
+async def delete_test_env(test_env_ip:str):
+    return m_test_env.delete_test_env(test_env_ip)
+
+
+# 获取测试配置
+@app.get("/test_set")
+async def read_test_set():
+    return m_test_set.read_test_set()
+
+
+# 写入测试配置
+@app.put("/test_set")
+async def write_test_set(test_set_option:m_test_set.testSetAndOption):
+    m_test_set.write_test_set(test_set_option)
+    return {"detail":"success"}
 
 if __name__ == "__main__":
     import uvicorn

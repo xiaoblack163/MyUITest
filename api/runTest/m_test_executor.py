@@ -1,36 +1,32 @@
 from typing import Dict,Any
-from pydantic import BaseModel
 import copy,uuid,time,json
-from ipaddress import IPv4Address
-
 from crud.m_test_order import read_test_order
 from crud.m_step_data import get_step_data_join
 from crud.m_report import post_report,Report
 from crud.m_detail_chart import post_detail_chart,DetailChart
 from crud.m_detail_report import post_detail_report,DetailReport
 from crud.m_operation_log import post_operation_log
+from crud.m_test_set import read_test_set
+
 
 from runTest.m_action import WebDriver
 from runTest.m_log import FormatLog
 
 
-# 定义前后端交互的测试数据结构
-class RunTestData(BaseModel):
-    selectedTreeTableValue:Dict[str, Dict[str,bool]]
-    testEnv:IPv4Address
-    testor:str
-    version: str
+
+
 
 # 执行测试的对象(整理测试数据，写入测试结果)
 class TestExecutor:
     def __init__(self,stop_event,shared_data,run_test_data:Dict[str, Any]) -> None:
         self.testID = str(uuid.uuid4()) # 测试报告ID
         self.testDate = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) # 测试时间
-        self.stop_event = stop_event # 停止运行信号
+        self.stop_skip_event = {"stop_event":stop_event,"skipCase":False} # 停止测试或者跳过用例运行信号
         self.shared_data = shared_data # 进程间共享数据
         self.test_order_data = self.parseCase(run_test_data) # 解析测试数据
         self.init_shared_data(run_test_data) # 初始化共享数据
-        self.webdriver = WebDriver(run_test_data["testEnv"],stop_event,self.formatLog) # 创建webdriver对象
+        self.testSet = read_test_set()["testSet"] # 读取测试配置
+        self.webdriver = WebDriver(run_test_data["testEnv"],self.testSet,self.stop_skip_event,self.formatLog) # 创建webdriver对象
         
 
     # 初始化共享数据
@@ -124,11 +120,13 @@ class TestExecutor:
             stepName = stepReportData["stepName"],
             locatMode = stepReportData["locatMode"],
             locatValue = stepReportData["locatValue"],
+            yoloValue = stepReportData["yoloValue"],
             elementNumber = stepReportData["elementNumber"],
             xValue = stepReportData["xValue"],
             yValue = stepReportData["yValue"],
             action = stepReportData["action"],
             AssertOrActionValue = stepReportData["AssertOrActionValue"],
+            preSleep = stepReportData["preSleep"],
             stepInfo = stepReportData["stepInfo"],
             caseID = stepReportData["caseID"],
             funcID = stepReportData["funcID"],
@@ -144,15 +142,20 @@ class TestExecutor:
             self.formatLog.change_funcName(funcTest["funcName"])
             self.formatLog.writeLog("INFO","测试功能开始执行")
             for caseTest in funcTest["children"]:
+                self.stop_skip_event["skipCase"] = False # 跳过用例设置为False
                 self.formatLog.change_caseName(caseTest["caseName"])
                 self.formatLog.writeLog("INFO","测试用例开始执行")
                 self.webdriver.start_screencast() # 开始录屏 测试用例为单位
                 for StepTest in caseTest["grandchild"]:
-                    if self.stop_event.is_set():
+                    if self.stop_skip_event["stop_event"].is_set():
                         self.webdriver.stop_screencast(self.testID+caseTest["caseID"]) # 停止录屏
                         self.done()
                         self.formatLog.writeLog("WARN","捕捉到停止信号，测试终止")
                         return 
+                    if self.stop_skip_event["skipCase"]:
+                        self.webdriver.stop_screencast(self.testID+caseTest["caseID"]) # 停止录屏
+                        self.formatLog.writeLog("WARN","捕捉到跳过用例信号，测试用例跳过")
+                        break 
                     self.formatLog.writeLog("INFO","测试步骤开始执行")
                     try:
                         self.shared_data["activity"]["testedNumber"] += 1 #已测步骤加1
@@ -172,12 +175,14 @@ class TestExecutor:
                             self.shared_data["activity"]["assertFailNumber"] += 1 #断言失败数加1
                             self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
                             self.formatLog.writeStepLog("FAIL",StepTest["stepName"],"断言失败")
+                            self.webdriver.set_stop_skip_event("assertFailAction") # 设置停止或者跳过用例
                     except Exception as e:
                         stepdata["result"] = False  #步骤执行失败加1
                         stepdata["execInfo"] = "执行失败"  #步骤执行失败信息
                         self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
                         self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
                         self.formatLog.writeStepLog("ERROR",StepTest["stepName"],"步骤执行失败"+str(e))
+                        self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
                     finally:
                         ...
                         self.writeDetailReport(stepdata) #写入测试步骤结果

@@ -1,5 +1,16 @@
 from threading import Thread,Event
 from runTest.m_test_executor import TestExecutor 
+from pydantic import BaseModel
+from ipaddress import IPv4Address
+from typing import Dict
+
+# 定义前后端交互的测试数据结构
+class RunTestData(BaseModel):
+    selectedTreeTableValue:Dict[str, Dict[str,bool]]
+    testEnv:IPv4Address
+    testor:str
+    version: str
+
 
 # 创建一个多进程的测试执行对象(连接前端与执行测试的桥梁,共享内存,停止执行等)
 class Create_TestExecutor:

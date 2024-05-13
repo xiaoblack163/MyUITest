@@ -12,19 +12,24 @@ from runTest.m_paddleocr import fuzzy_match
 
 from runTest.m_pyautogui import locate_all
 
+from runTest.m_sendFlow import sendFlow
 
 # 浏览器操作对象(执行测试步骤)
 class WebDriver:
-    def __init__(self,testEnv,stop_event,formatLog):
+    def __init__(self,testEnv,testSet,stop_skip_event,formatLog):
         # 创建页面对象
         co = ChromiumOptions()
         co.auto_port()
-        co.set_argument('--start-maximized')
         # co.ignore_certificate_errors(True)
-        # co.headless(True)
+        if testSet["runMode"] == "无头模式":
+            co.set_argument('--window-size', '1920,1080')
+            co.headless(True)
+        else:
+            co.set_argument('--start-maximized')
         self.page = ChromiumPage(co)
         self.testEnv = testEnv
-        self.stop_event = stop_event
+        self.testSet = testSet
+        self.stop_skip_event = stop_skip_event
         self.formatLog = formatLog
         self.mapping_action = {
             "无需定位":{"发送流量":self.sendFlow,"访问网页":self.get_url,"登录":self.login,"退出登录":self.logout,"刷新页面":self.refresh,"初始化脚本":self.tag_add_init_js,"等待":self.sleep,"断言当前页面url包含指定内容":self.assert_url_exclude,"断言当前页面url不包含指定内容":self.assert_url_not_exclude,"断言当前页面title包含指定内容":self.assert_title_exclude,"断言当前页面title不包含指定内容":self.assert_title_not_exclude},
@@ -41,14 +46,27 @@ class WebDriver:
         
         self.stepdata = None
 
-
-    # 执行步骤操作
+    # 执行测试步骤
     def start_step(self,stepdata):
         self.stepdata = stepdata
         self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位模式:"+stepdata["locatMode"]+" 动作："+stepdata["action"])
+        time.sleep(self.stepdata["preSleep"])
         result = self.mapping_action[stepdata["locatMode"]][stepdata["action"]]()
         return result
     
+    # 设置停止或者跳过用例
+    def set_stop_skip_event(self,FailAction):
+        eventAction = self.testSet.get(FailAction)
+        self.formatLog.writeStepLog("Warn",self.stepdata["stepName"],eventAction)
+        if eventAction == "停止测试":
+            self.stop_skip_event["stop_event"].set()
+        elif eventAction == "跳过用例":
+            self.stop_skip_event["skipCase"] = True
+        elif eventAction == "继续执行":
+            ...
+        else:
+            self.formatLog.writeLog("ERROR","设置停止或者跳过用例错误")
+
     # # 获取当前鼠标坐标
     # def get_current_xyValue(self):
     #     print("当前x坐标",self.page.actions.curr_x)
@@ -65,6 +83,9 @@ class WebDriver:
 
     # 开始录屏
     def start_screencast(self):
+        if self.testSet["screencastValue"] == "否":
+            self.formatLog.writeLog("INFO","不进行录屏")
+            return
         self.formatLog.writeLog("INFO","开始录屏")
         time.sleep(0.5)
         self.page.screencast.set_save_path('screencast')  # 设置视频存放路径
@@ -76,6 +97,8 @@ class WebDriver:
 
     # 停止录屏
     def stop_screencast(self,video_name):
+        if self.testSet["screencastValue"] == "否":
+            return
         self.formatLog.writeLog("INFO","停止录屏")
         try:
             time.sleep(2)
@@ -86,12 +109,15 @@ class WebDriver:
 
     # 截屏
     def start_screenshot(self,detailReportID):
-        for i in range(3):
+        if self.testSet["screenshotValue"] == "否":
+            self.formatLog.writeLog("INFO","不进行步骤截图")
+            return
+        for i in range(self.testSet["screenshotRetry"]):
             try:
                 self.page.get_screenshot(path="screenshot",name=detailReportID+".png")
                 break
             except:
-                self.formatLog.writeLog("WARN","步骤截图失败 重试:"+str(i))
+                self.formatLog.writeLog("WARN","步骤截图失败 重试:"+str(i+1))
                 time.sleep(1)
                 continue
         else:
@@ -99,7 +125,7 @@ class WebDriver:
 
     # 二进制截屏
     def get_img_binary(self):
-        for j in range(3):
+        for j in range(self.testSet["screenshotRetry"]):
             try:
                 return self.page.get_screenshot(as_bytes=True)
             except:
@@ -119,6 +145,7 @@ class WebDriver:
     # tcpreplay发送流量
     def sendFlow(self):
         print("发送流量")
+        # sendFlow()
         return True
 
     # 睡眠
@@ -144,11 +171,11 @@ class WebDriver:
                 return True
             elif "ERR_CONNECTION_TIMED_OUT" in str(e):
                 self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"网页访问超时 结束测试!!!")
-                self.stop_event.set()
+                self.set_stop_skip_event("getUrlFailAction")
                 raise
             else:
                 self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"网页访问未知错误 结束测试!!!")
-                self.stop_event.set()
+                self.set_stop_skip_event("getUrlFailAction")
                 raise
                 
 
@@ -161,17 +188,17 @@ class WebDriver:
         self.page.ele('tag:input@placeholder:请输入您的密码').input(self.stepdata["AssertOrActionValue"].split("/")[1])
         with open ("code.png","wb") as f:
             f.write(self.page.ele('t:img').src())
-        code=decode(predict_one(r'code.png','verifycode_model.pth'))
+        code=decode(predict_one(r'code.png','verifycode_model_20.pth'))
         self.page.ele('tag:input@placeholder=请输入验证码').input(code)
         self.page.ele('立 即 登 录').click()
 
 
     # 登录
     def login(self):
-        for i in range(2):
+        for i in range(self.testSet["loginRetry"]):
             self.login0()
             if self.page.ele('登录失败',timeout=1):
-                self.formatLog.writeStepLog("WARN",self.stepdata["stepName"],"登录失败 尝试再次登录"+str(i))
+                self.formatLog.writeStepLog("WARN",self.stepdata["stepName"],"登录失败 尝试再次登录"+str(i+1))
                 self.refresh()
                 self.login0()
             else:
@@ -179,7 +206,7 @@ class WebDriver:
                 return True
         else:
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"登录失败 结束测试")
-            self.stop_event.set()
+            self.set_stop_skip_event("loginFailAction")
             raise
 
     # 退出登录
@@ -193,14 +220,14 @@ class WebDriver:
         self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始查找元素 定位模式:"+self.stepdata["locatMode"]+" 定位值:"+self.stepdata["locatValue"]+" 元素序号:"+str(self.stepdata["elementNumber"]))
         if self.stepdata["locatMode"] == '文本':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始标签定位..")
-            for i in range(5):
+            for i in range(self.testSet["locatRetry"]):
                 if "输入" in self.stepdata["action"]:
                     eles = self.page.eles("tag:input@placeholder="+self.stepdata["locatValue"])
                 else:
                     eles = self.page.eles(self.stepdata["locatValue"])
                 if len(eles) < self.stepdata["elementNumber"]:
                     time.sleep(1)
-                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i))
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i+1))
                     continue
                 else:
                     return eles[self.stepdata["elementNumber"] -1]
@@ -210,11 +237,11 @@ class WebDriver:
         locatMode =self.stepdata["locatMode"].replace("ID","#").replace("XPATH","xpath:").replace("CSS","css:").replace("自定义","")
         if locatMode in ['#','xpath:','css:','']:
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始标签定位..")
-            for i in range(5):
+            for i in range(self.testSet["locatRetry"]):
                 eles = self.page.eles(locatMode + self.stepdata["locatValue"])
                 if len(eles) < self.stepdata["elementNumber"]:
                     time.sleep(1)
-                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i))
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i+1))
                     continue
                 else:
                     return eles[self.stepdata["elementNumber"] -1]
@@ -223,16 +250,21 @@ class WebDriver:
         ################################
         if locatMode == '文字识别':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始文字识别..")
-            for i in range(5):
-                xylist = fuzzy_match(img=self.get_img_binary(),text=self.stepdata["locatValue"],formatLog=self.formatLog)
+            for i in range(self.testSet["locatRetry"]):
+                xylist = fuzzy_match(img=self.get_img_binary(),text=self.stepdata["locatValue"],ocrMatch=self.testSet["ocrMatch"],formatLog=self.formatLog)
                 if len(xylist) < self.stepdata["elementNumber"]:
                     time.sleep(1)
-                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i))
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+self.stepdata["locatValue"]+" 重试:"+str(i+1))
                     continue
                 else:
+                    currentConfidence = xylist[self.stepdata["elementNumber"] -1][-1][-1]
+                    yoloConfidence = float(self.testSet["yoloConfidence"]/100)
+                    if currentConfidence < yoloConfidence:
+                        self.formatLog.writeStepLog("WARN",self.stepdata["stepName"],"文字识别置信度不足 预期置信度:"+str(yoloConfidence)+" 当前置信度:"+str(currentConfidence))
+                        continue
                     next_x = (xylist[self.stepdata["elementNumber"] -1][0][0][0] + xylist[self.stepdata["elementNumber"] -1][0][2][0])/2
                     next_y = (xylist[self.stepdata["elementNumber"] -1][0][0][1] + xylist[self.stepdata["elementNumber"] -1][0][2][1])/2
-                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y))
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y)+" 当前置信度:"+str(currentConfidence))
                     return (next_x,next_y)
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
             raise
@@ -250,11 +282,11 @@ class WebDriver:
         ################################
         if locatMode == '图像识别':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始图像识别..")
-            for i in range(5):
-                xyBoxs = locate_all(img_binary=self.get_img_binary(),image_path="locatImages/"+self.stepdata["stepID"]+".png",confidence=0.95,formatLog=self.formatLog,distance=10)
+            for i in range(self.testSet["locatRetry"]):
+                xyBoxs = locate_all(img_binary=self.get_img_binary(),image_path="locatImages/"+self.stepdata["stepID"]+".png",confidence=float(self.testSet["imgConfidence"]/100),formatLog=self.formatLog,distance=10)
                 if len(xyBoxs) < self.stepdata["elementNumber"]:
                     time.sleep(1)
-                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+" 重试:"+str(i))
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+" 重试:"+str(i+1))
                     continue
                 else:
                     next_x = xyBoxs[self.stepdata["elementNumber"] -1].left + xyBoxs[self.stepdata["elementNumber"] -1].width/2

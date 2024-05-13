@@ -21,7 +21,7 @@ const model = ref([
             { label: '用例管理', icon: 'pi pi-fw pi-th-large', to: '/uikit/caseManager' },
             { label: '用例总览', icon: 'pi pi-fw pi-flag', to: '/uikit/caseView'},
             { label: '测试顺序', icon: 'pi pi-fw pi-sitemap' ,to: '/uikit/testSort'},
-            { label: '环境配置', icon: 'pi pi-fw pi-sliders-h', to: '/uikit/testEnv'},
+            { label: '环境配置', icon: 'pi pi-fw pi-sliders-h', to: '/uikit/testSet'},
         ]
     },
     {
@@ -34,7 +34,7 @@ const model = ref([
             },
             {
                 label: '运行日志',
-                icon: 'pi pi-fw pi-question-circle',
+                icon: 'pi pi-fw pi-align-left',
                 to: '/uikit/runLog'
             }
         ]
@@ -49,7 +49,7 @@ const model = ref([
             },
             {
                 label: '详细报告',
-                icon: 'pi pi-fw pi-gift',
+                icon: 'pi pi-fw pi-star',
                 to: '/uikit/detailReport'
             }
             
@@ -58,14 +58,25 @@ const model = ref([
     {
         label: '控制台',
         items: [
-        { label: '测试文档', icon: 'pi pi-fw pi-wallet'},
-        { label: '测试附件', icon: 'pi pi-fw pi-tags'},
-            // {
-            //     label: '接口文档',
-            //     icon: 'pi pi-fw pi-link',
-            //     url: storee.host + '/redoc',
-            //     target: '_blank'
-            // }
+            { label: '测试文档', icon: 'pi pi-fw pi-tags'},
+            { label: '测试附件', icon: 'pi pi-fw pi-wallet'},
+        ]
+    },
+    {
+        label: '外部系统',
+        items: [
+            {
+                label: '交付系统',
+                icon: 'pi pi-fw pi-link',
+                url: 'http://10.0.0.101:65432',
+                target: '_blank'
+            },
+            {
+                label: '接口自动化',
+                icon: 'pi pi-fw pi-link',
+                url: 'http://10.0.0.101:65433',
+                target: '_blank'
+            },
         ]
     }
 ]);

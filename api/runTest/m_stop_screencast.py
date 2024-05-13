@@ -18,14 +18,11 @@ def stop(self, video_name=None):
 
     for _ in range(30):
         if self._running:
-            print("就是当年年底s")
             sleep(.3)
             continue
         else:
             break
     else:
-        ...
-        print("设置运行胡宗南柜台啊的方法对付那就客气你看人家撒旦接口返回会计师大后方看")
         raise
         
 

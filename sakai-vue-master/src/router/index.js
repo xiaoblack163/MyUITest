@@ -39,9 +39,9 @@ const router = createRouter({
                     component: () => import('@/views/uikit/report.vue')
                 },
                 {
-                    path: '/uikit/testEnv',
-                    name: 'testEnv',
-                    component: () => import('@/views/uikit/testEnv.vue')
+                    path: '/uikit/testSet',
+                    name: 'testSet',
+                    component: () => import('@/views/uikit/testSet.vue')
                 },
                 {
                     path: '/uikit/testSort',

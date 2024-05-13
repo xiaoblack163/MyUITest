@@ -491,6 +491,104 @@ const Utilss=reactive({
             console.log('error', '请求错误！', error);
         }
     },
+    //获取所有测试环境数据
+    async GetTestEnvs(){
+        try {
+            const response = await fetch(stores.host + '/test_envs', {
+                method: 'GET',
+            });
+            return response.json()
+        } catch (error) {
+            console.log('error', '请求错误！', error);
+        }
+    },
+    //获取单个测试环境数据（未使用）
+    async GetTestEnv(testEnvIP){
+        try {
+            const response = await fetch(stores.host + '/test_env/'+ testEnvIP, {
+                method: 'GET',
+            });
+            return response.json()
+        } catch (error) {
+            console.log('error', '请求错误！', error);
+        }
+    },
+    // 提交测试执行数据
+    PostTestEnv(toast,testEnvData){
+        fetch(stores.host+'/test_env', {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testEnvData)
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                toast.add({ severity: 'info', summary: '提交测试环境数据', detail: data.detail, life: 3000 });
+            })
+            .catch((error) => {
+                console.log('error', '请求错误！', error);
+                toast.add({ severity: 'error', summary: '提交测试环境数据', detail: "错误", life: 3000 });
+            });
+    },
+    // 修改测试执行数据
+    PutTestEnv(toast,testEnvData){
+        fetch(stores.host+'/test_env', {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testEnvData)
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                toast.add({ severity: 'info', summary: '修改测试环境数据', detail: data.detail, life: 3000 });
+            })
+            .catch((error) => {
+                console.log('error', '请求错误！', error);
+                toast.add({ severity: 'error', summary: '修改测试环境数据', detail: "错误", life: 3000 });
+            });
+    },
+    // 删除测试环境数据
+    DeleteTestEnv(toast,testEnvIP){
+        console.log("啊啊啊",testEnvIP)
+        fetch(stores.host+'/test_env/'+testEnvIP, {
+            method: "DELETE",
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                toast.add({ severity: 'info', summary: '删除测试环境', detail: data.detail, life: 3000 });
+            })
+            .catch((error) => {
+                console.log('error', '请求错误！', error);
+                toast.add({ severity: 'error', summary: '删除测试环境', detail: "错误", life: 3000 });
+            });
+    },
+    //获取测试配置
+    async GetTestSet(){
+        try {
+            const response = await fetch(stores.host + '/test_set', {
+                method: 'GET',
+            });
+            return response.json()
+        } catch (error) {
+            console.log('error', '请求错误！', error);
+        }
+    },
+    // 修改测试执行数据
+    PutTestSet(toast,testSetData){
+        fetch(stores.host+'/test_set', {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testSetData)
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                toast.add({ severity: 'info', summary: '更新测试配置', detail: data.detail, life: 3000 });
+            })
+            .catch((error) => {
+                console.log('error', '请求错误！', error);
+                toast.add({ severity: 'error', summary: '更新测试配置', detail: "错误", life: 3000 });
+            });
+    },
 })
 
 export default Utilss

@@ -1,7 +1,6 @@
 from typing import  Optional
 from sqlmodel import SQLModel, Field
 
-
 # 测试功能表
 class FuncTest(SQLModel, table=True):
     funcID: str = Field(default=None, primary_key=True)
@@ -19,11 +18,13 @@ class StepData(SQLModel, table=True):
     stepName: str
     locatMode: str
     locatValue: str
+    yoloValue: str
     elementNumber: Optional[int] =Field(nullable=False)
     xValue: Optional[int] =Field(nullable=False)
     yValue: Optional[int] =Field(nullable=False)
     action: str
     AssertOrActionValue: str
+    preSleep: Optional[int] =Field(nullable=False)
     stepInfo: str
     caseID: str 
     funcID: str 
@@ -57,11 +58,13 @@ class DetailReport(SQLModel, table=True):
     stepName: str
     locatMode: str
     locatValue: str
+    yoloValue: str
     elementNumber: Optional[int] =Field(nullable=False)
     xValue: Optional[int] =Field(nullable=False)
     yValue: Optional[int] =Field(nullable=False)
     action: str
     AssertOrActionValue: str
+    preSleep: Optional[int] =Field(nullable=False)
     stepInfo: str
     caseID: str 
     funcID: str 
@@ -76,5 +79,13 @@ class OperationLog(SQLModel, table=True):
     operationCrud: str
     operationName: str
 
+
+# 测试环境表
+class TestEnv(SQLModel, table=True):
+    testEnvID:  str = Field(default=None, primary_key=True)
+    testEnvIP: str = Field(unique=True)
+    sendFlowHostName:str
+    sendFlowUserName: str
+    sendFlowPassWord: str
 
     

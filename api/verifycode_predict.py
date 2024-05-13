@@ -18,8 +18,10 @@ def predict_one(imgpath,modelpth):
 
 
 def decode(code_tensor):
-    all_code = list('0123456789abcdefghijklmnopqrstuvwxyz')
-    f = code_tensor.view(4, 36)
+    # all_code = list('0123456789abcdefghijklmnopqrstuvwxyz')
+    # f = code_tensor.view(4, 36)
+    all_code = list('2345678abcdefgmnpwxy')
+    f = code_tensor.view(4, 20)
     result = []
     for row in f:
         result.append(all_code[torch.argmax(row, dim=0)])

@@ -175,11 +175,13 @@ const stepfuncs = [
                 stepName: '',
                 locatMode: '',
                 locatValue: '',
+                yoloValue:'',
                 elementNumber: 1,
                 xValue: 0,
                 yValue: 0,
                 action: '',
                 AssertOrActionValue: '',
+                preSleep:0,
                 stepInfo: '',
                 caseID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1],
                 caseName: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0],
@@ -199,11 +201,13 @@ const stepData = ref({
     stepName: '',
     locatMode: '',
     locatValue: '',
+    yoloValue:'',
     elementNumber: 1,
     xValue: 0,
     yValue: 0,
     action: '',
     AssertOrActionValue: '',
+    preSleep: 0,
     stepInfo: '',
     caseID: '',
     funcID: ''
@@ -278,6 +282,9 @@ const saveData = () => {
     } else if (checkLocatValue.value.includes(stepData.value.locatMode.value) && stepData.value.locatValue === '') {
         toast.add({ severity: 'warn', summary: '警告', detail: '请输入定位值!', life: 3000 });
         return false;
+    } else if (stepData.value.locatMode.value === '目标检测' && stepData.value.yoloValue === '') {
+        toast.add({ severity: 'warn', summary: '警告', detail: '请选择检测目标!', life: 3000 });
+        return false;
     } else if (stepData.value.action === '') {
         toast.add({ severity: 'warn', summary: '警告', detail: '请选择操作或者断言!', life: 3000 });
         return false;
@@ -335,9 +342,10 @@ const confirm2 = (event) => {
 };
 
 // #################################################################################
+
+const locatValue_active = ref(false);// 是否禁用请输入定位值选择框
 // 目标检测相关
 const yolo = ref(false);//当前定位方式是否为目标检测
-const yoloValue = ref('');
 const yoloOption = ref([]);
 // #################################################################################
 watch(locatMode, (newValue) => {
@@ -346,20 +354,31 @@ watch(locatMode, (newValue) => {
         stepData.value.action = '';
         stepData.value.AssertOrActionValue = '';
         stepData.value.locatValue = '';
+        stepData.value.yoloValue = '';
     }
     if (newValue.value === '无需定位') {
         actionOption.value = locatOption_actionOption.value['无需定位'];
+        locatValue_active.value = true;
         yolo.value = false;
     } else if (['文本', 'ID', 'XPATH', 'CSS', '自定义'].includes(newValue.value)) {
         actionOption.value = locatOption_actionOption.value['标签定位'];
+        locatValue_active.value = false;
         yolo.value = false;
-    } else if (['文字识别', , '绝对坐标', '图像识别'].includes(newValue.value)) {
+    } else if (newValue.value === '文字识别') {
         actionOption.value = locatOption_actionOption.value['坐标定位'];
+        locatValue_active.value = false;
+        yolo.value = false;
+    } else if (['绝对坐标', '图像识别'].includes(newValue.value)) {
+        actionOption.value = locatOption_actionOption.value['坐标定位'];
+        locatValue_active.value = true;
         yolo.value = false;
     } else if (newValue.value === '目标检测') {
+        actionOption.value = locatOption_actionOption.value['坐标定位'];
+        locatValue_active.value = true;
         yolo.value = true;
     } else {
         actionOption.value = '';
+        locatValue_active.value = false;
         yolo.value = false;
     }
 });
@@ -519,10 +538,10 @@ onBeforeMount(async () => {
                         />
                     </div>
                     <div v-if="!yolo" class="field col-12 md:col-5">
-                        <InputText id="lastname1" v-model="stepData.locatValue" style="width: 100%" type="text" placeholder="请输入定位值" />
+                        <InputText :disabled="locatValue_active" id="lastname1" v-model="stepData.locatValue" style="width: 100%" type="text" placeholder="请输入定位值" />
                     </div>
                     <div v-if="yolo" class="field col-12 md:col-5">
-                        <Dropdown v-model="yoloValue" :options="yoloOption" placeholder="请选择检测目标">
+                        <Dropdown v-model="stepData.yoloValue" :options="yoloOption" placeholder="请选择检测目标">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value" class="flex align-items-center">
                                     <Image alt="Image" preview>
@@ -557,11 +576,14 @@ onBeforeMount(async () => {
                 <h5>操作与断言</h5>
                 <p class="text-color-secondary block mb-5">请输入操作与断言.</p>
                 <div class="formgrid grid">
-                    <div class="field col">
+                    <div class="field col-12  md:col-5">
                         <CascadeSelect v-model="stepData.action" :options="actionOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择操作与断言" />
                     </div>
-                    <div class="field col">
+                    <div class="field col-12  md:col-5">
                         <InputText id="lastname1" v-model="stepData.AssertOrActionValue" style="width: 100%" type="text" placeholder="请输入操作或断言参数" />
+                    </div>
+                    <div class="field col-12  md:col-2">
+                        <InputNumber v-model="stepData.preSleep" inputId="minmax-buttons" placeholder="执行前置等待" mode="decimal" showButtons :min="0" :max="100" />
                     </div>
                 </div>
             </div>
@@ -607,40 +629,4 @@ onBeforeMount(async () => {
 
 
 
-<style scoped>
-.custom-otp-input {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    appearance: none;
-    text-align: center;
-    transition: all 0.2s;
-    border-radius: 0;
-    border: 1px solid var(--surface-400);
-    background: transparent;
-    outline-offset: -2px;
-    outline-color: transparent;
-    border-right: 0 none;
-    transition: outline-color 0.3s;
-    color: var(--text-color);
-}
 
-.custom-otp-input:focus {
-    outline: 2px solid var(--primary-color);
-}
-
-.custom-otp-input:first-child,
-.custom-otp-input:nth-child(5) {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-}
-
-.custom-otp-input:nth-child(4),
-.custom-otp-input:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-color: var(--surface-400);
-}
-</style>
