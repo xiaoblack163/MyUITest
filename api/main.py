@@ -18,6 +18,7 @@ from crud import m_detail_chart
 from crud import m_detail_report
 from crud import m_test_env
 from crud import m_test_set
+from crud import m_test_log
 
 from runTest import m_create_test_process
 
@@ -354,6 +355,15 @@ async def read_test_set():
 async def write_test_set(test_set_option:m_test_set.testSetAndOption):
     m_test_set.write_test_set(test_set_option)
     return {"detail":"success"}
+
+########################################################################
+
+
+# 获取测试日志
+@app.get("/test_log/{test_log_ip}")
+async def get_test_log(test_log_ip:str):
+    return m_test_log.get_test_log(test_log_ip)
+
 
 if __name__ == "__main__":
     import uvicorn

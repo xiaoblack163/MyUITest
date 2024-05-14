@@ -88,4 +88,8 @@ class TestEnv(SQLModel, table=True):
     sendFlowUserName: str
     sendFlowPassWord: str
 
-    
+# 测试日志表
+class TestLog(SQLModel, table=True):
+    reportID:  str = Field(default=None, primary_key=True)
+    testLog: str
+

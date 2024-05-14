@@ -573,7 +573,7 @@ const Utilss=reactive({
             console.log('error', '请求错误！', error);
         }
     },
-    // 修改测试执行数据
+    // 修改测试设置数据
     PutTestSet(toast,testSetData){
         fetch(stores.host+'/test_set', {
             method: "PUT",
@@ -588,6 +588,17 @@ const Utilss=reactive({
                 console.log('error', '请求错误！', error);
                 toast.add({ severity: 'error', summary: '更新测试配置', detail: "错误", life: 3000 });
             });
+    },
+    //获取测试配置
+    async GetTestLog(test_log_id){
+        try {
+            const response = await fetch(stores.host + '/test_log/'+test_log_id, {
+                method: 'GET',
+            });
+            return response.json()
+        } catch (error) {
+            console.log('error', '请求错误！', error);
+        }
     },
 })
 

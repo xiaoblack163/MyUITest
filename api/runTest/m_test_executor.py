@@ -5,6 +5,7 @@ from crud.m_step_data import get_step_data_join
 from crud.m_report import post_report,Report
 from crud.m_detail_chart import post_detail_chart,DetailChart
 from crud.m_detail_report import post_detail_report,DetailReport
+from crud.m_test_log import post_test_log,TestLog
 from crud.m_operation_log import post_operation_log
 from crud.m_test_set import read_test_set
 
@@ -108,6 +109,15 @@ class TestExecutor:
         )
         post_detail_chart(detailChartData)
 
+    # 添加测试日志
+    def writeTestLog(self):
+        testLogData = TestLog(
+            reportID=self.testID,
+            testLog=json.dumps(self.shared_data["logsMap"],ensure_ascii=False)
+        )
+        post_test_log(testLogData)
+
+
     # 添加详细步骤报告
     def writeDetailReport(self,stepReportData):
         detailReporttData = DetailReport(
@@ -193,6 +203,7 @@ class TestExecutor:
     def done(self):
         self.writeReport()
         self.writeDetailChart()
+        self.writeTestLog()
         self.webdriver.page.quit()
         self.shared_data["run_status"] = False
         self.formatLog.writeLog("INFO","测试执行完毕")

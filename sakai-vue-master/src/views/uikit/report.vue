@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
+import LogView from "./logView.vue";
 import route from "@/router";
 import { inject } from 'vue';
 const utilss = inject('utilss');
@@ -40,6 +41,12 @@ const toDetailReport = (reportID) => {
     route.push('/uikit/detailReport')
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+const visibleBottom = ref(false);
+const test_log_id = ref("")
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 onBeforeMount(async () => {
     reports.value = await utilss.GetReports()
     console.log("reports",reports.value)
@@ -48,6 +55,9 @@ onBeforeMount(async () => {
 </script>
 
 <template>
+    <Sidebar v-model:visible="visibleBottom"  position="bottom" style="height: auto">
+        <LogView :logMode="test_log_id"/>
+    </Sidebar>
     <div class="card">
         <h5>测试报告</h5>
         <DataTable :value="reports" :paginator="true" :rows="10" dataKey="id" :rowHover="true" showGridlines scrollable>
@@ -73,19 +83,11 @@ onBeforeMount(async () => {
             <Column headerStyle="width: 10rem; text-align: center" frozen alignFrozen="right" bodyStyle="text-align: center; overflow: visible">
                 <template #body="{ data }">
                     <Button @click="toDetailReport(data.reportID)" type="button" icon="pi pi-star" rounded />
-                    <Button style="margin-left: 1rem;" @click="toDetailReport(data.reportID)" type="button" icon="pi pi-align-left" rounded />
+                    <Button style="margin-left: 1rem;" @click="visibleBottom = true;test_log_id = data.reportID"  type="button" icon="pi pi-align-left" rounded />
                 </template>
             </Column>
         </DataTable>
     </div>
 </template>
 
-<style scoped lang="scss">
-:deep(.p-datatable-frozen-tbody) {
-    font-weight: bold;
-}
 
-:deep(.p-datatable-scrollable .p-frozen-column) {
-    font-weight: bold;
-}
-</style>
