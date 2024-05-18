@@ -212,7 +212,7 @@ onBeforeMount(async () => {
         <div class="col-12 xl:col-6">
             <div class="card">
                 <span style="font: 1.3em sans-serif;">近期</span><span style="font: 1.3em sans-serif;color:#EC4899;">FAIL</span><span style="font: 1.3em sans-serif;">测试步骤</span>
-                <DataTable :value="FailDetailReportRecord" :rows="6" :paginator="true"  rowHover=true  responsiveLayout="scroll">
+                <DataTable :value="FailDetailReportRecord" :rows="6" :paginator="true"  :rowHover=true  responsiveLayout="scroll">
                     <Column style="width: 15%">
                         <template #header>截图</template>
                         <template #body="slotProps">
@@ -242,7 +242,7 @@ onBeforeMount(async () => {
             </div>
             <div class="card">
                 <span style="font: 1.3em sans-serif;">近期</span><span style="font: 1.3em sans-serif;color:#43C667;">版本</span><span style="font: 1.3em sans-serif;">测试报告</span>
-                <DataTable :value="ReportRecord"  :rows="10" dataKey="id" rowHover=true size="large" >
+                <DataTable :value="ReportRecord"  :rows="10" dataKey="id" :rowHover=true size="large" >
                     <Column header="版本" field="version" style="width: 20%"></Column>
                     <Column header="测试时间" field="testDate"  style="width: 40%"></Column>
                     <Column field="result" header="结果" dataType="boolean" style="width: 15%">

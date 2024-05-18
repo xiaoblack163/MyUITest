@@ -11,7 +11,7 @@ def get_image(img_binary,image_path,confidence,formatLog):
         # 当前步骤执行的截图
         image = Image.open(image_stream)
         # 定位到的box生成器
-        locations = pyautogui.locateAll(needleImage=image_path, haystackImage=image,confidence=confidence,grayscale=True)
+        locations = pyautogui.locateAll(needleImage=image_path, haystackImage=image,confidence=confidence,grayscale=False)
         return list(locations)
     except Exception as e:
         stre = str(e)

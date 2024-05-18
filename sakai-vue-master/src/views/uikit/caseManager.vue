@@ -546,10 +546,10 @@ onBeforeMount(async () => {
                                 <div v-if="slotProps.value" class="flex align-items-center">
                                     <Image alt="Image" preview>
                                         <template #image>
-                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.png'" alt="" width="18" />
+                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.jpg'" alt="" width="18" />
                                         </template>
                                         <template #preview>
-                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.png'" alt="" width="500"/>
+                                            <img :src="storee.host+'/yoloImages/'+slotProps.value+'.jpg'" alt="" width="500"/>
                                         </template>
                                     </Image>
                                     <div>{{ slotProps.value }}</div>
@@ -560,7 +560,7 @@ onBeforeMount(async () => {
                             </template>
                             <template #option="slotProps">
                                 <div class="flex align-items-center">
-                                    <img alt="" :src="storee.host+'/yoloImages/'+slotProps.option+'.png'"  style="width: 18px" />
+                                    <img alt="" :src="storee.host+'/yoloImages/'+slotProps.option+'.jpg'"  style="width: 18px" />
                                     <div>{{ slotProps.option }}</div>
                                 </div>
                             </template>

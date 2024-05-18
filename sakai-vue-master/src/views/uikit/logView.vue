@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps,onBeforeMount } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 const logMode = defineProps( ["logMode"]);
 import { inject } from 'vue';
 const utilss = inject('utilss');

@@ -8,7 +8,7 @@ from crud.m_detail_report import post_detail_report,DetailReport
 from crud.m_test_log import post_test_log,TestLog
 from crud.m_operation_log import post_operation_log
 from crud.m_test_set import read_test_set
-
+from crud.m_test_env import get_test_env
 
 from runTest.m_action import WebDriver
 from runTest.m_log import FormatLog
@@ -27,7 +27,8 @@ class TestExecutor:
         self.test_order_data = self.parseCase(run_test_data) # 解析测试数据
         self.init_shared_data(run_test_data) # 初始化共享数据
         self.testSet = read_test_set()["testSet"] # 读取测试配置
-        self.webdriver = WebDriver(run_test_data["testEnv"],self.testSet,self.stop_skip_event,self.formatLog) # 创建webdriver对象
+        self.testEnv = dict(get_test_env(str(run_test_data["testEnv"]))) # 读取测试环境(发包)
+        self.webdriver = WebDriver(self.testEnv,self.testSet,self.stop_skip_event,self.formatLog) # 创建webdriver对象
         
 
     # 初始化共享数据
@@ -40,6 +41,7 @@ class TestExecutor:
         self.shared_data["testEnv"]["testEnv"] = run_test_data["testEnv"]
         self.shared_data["testEnv"]["testor"] = run_test_data["testor"]
         self.shared_data["testEnv"]["version"] = run_test_data["version"]
+        
 
         # 测试进度
         self.shared_data["activity"] = {}

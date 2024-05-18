@@ -123,7 +123,6 @@ const activity_chart = ref()
 const getRunInfo = async () => {
     activity_chart.value = await utilss.GetCaseActivity(toast);
     
-
     runTestData.value.testEnv = activity_chart.value.testEnv.testEnv
     runTestData.value.testor = activity_chart.value.testEnv.testor
     runTestData.value.version = activity_chart.value.testEnv.version
@@ -193,7 +192,15 @@ const confirm2 = (event) => {
     });
 };
 
+// 测试环境选项
+const EnvOption = ref();
+
+
 onMounted(async () => {
+    var EnvOptions = await utilss.GetTestEnvs();
+    EnvOption.value = EnvOptions.map(function(item) {
+        return item.testEnvIP;
+    });
     treeTableValue.value = await utilss.GetRunCaseTreeData();
     getRunInfo()
 });
@@ -217,8 +224,7 @@ onMounted(async () => {
         <h5>运行测试</h5>
         <div class="formgrid grid">
             <div class="field col-12 md:col-3">
-                <label for="lastname1" class="p-sr-only">运行环境</label>
-                <InputText v-model="runTestData.testEnv" style="width: 100%" type="text" placeholder="请输入运行环境" />
+                <Dropdown v-model="runTestData.testEnv" :options="EnvOption"  placeholder="请选择测试环境" class="w-full " />
             </div>
             <div class="field col-12 md:col-3">
                 <label for="lastname1" class="p-sr-only">测试版本</label>

@@ -22,6 +22,7 @@ class WebDriver:
         co.auto_port()
         # co.ignore_certificate_errors(True)
         if testSet["runMode"] == "无头模式":
+            # co.ignore_certificate_errors(True)
             co.set_argument('--window-size', '1920,1080')
             co.headless(True)
         else:
@@ -145,7 +146,7 @@ class WebDriver:
     # tcpreplay发送流量
     def sendFlow(self):
         print("发送流量")
-        # sendFlow()
+        sendFlow(hostname=self.testEnv["sendFlowHostName"],username=self.testEnv["sendFlowUserName"],password=self.testEnv["sendFlowPassWord"],command=self.stepdata["AssertOrActionValue"])
         return True
 
     # 睡眠
@@ -158,7 +159,7 @@ class WebDriver:
         if self.stepdata["AssertOrActionValue"]:
             url = self.stepdata["AssertOrActionValue"]
         else:
-            url="http://"+str(self.testEnv)
+            url="http://"+self.testEnv["testEnvIP"]
 
         try:
             self.page.get(url=url,show_errmsg=True,retry=0,timeout=10)
@@ -270,7 +271,20 @@ class WebDriver:
             raise
         ################################
         if locatMode == '目标检测':
-            return "目标检测元素"
+            self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始目标检测..")
+            for i in range(self.testSet["locatRetry"]):
+                xyBoxs = locate_all(img_binary=self.get_img_binary(),image_path="yoloImages/"+self.stepdata["yoloValue"]+".jpg",confidence=float(self.testSet["yoloConfidence"]/100),formatLog=self.formatLog,distance=10)
+                if len(xyBoxs) < self.stepdata["elementNumber"]:
+                    time.sleep(1)
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"未找到序号为:"+str(self.stepdata["elementNumber"])+" 的元素 "+" 重试:"+str(i+1))
+                    continue
+                else:
+                    next_x = xyBoxs[self.stepdata["elementNumber"] -1].left + xyBoxs[self.stepdata["elementNumber"] -1].width/2
+                    next_y = xyBoxs[self.stepdata["elementNumber"] -1].top + xyBoxs[self.stepdata["elementNumber"] -1].height/2
+                    self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y))
+                    return (next_x,next_y)
+            self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
+            raise
         ################################
         if locatMode == '绝对坐标':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始定位绝对坐标..")
