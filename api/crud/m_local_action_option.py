@@ -74,6 +74,9 @@ locatOption_actionOption= {
                     {
                         "value": '初始化脚本'
                     },
+                    {
+                        "value": '选择时间'
+                    },
                 ]
             },
             {
@@ -174,6 +177,9 @@ locatOption_actionOption= {
                     "value": '动作链:点击并输入'
                 },
                 {
+                    "value": '动作链:点击清空并输入'
+                },
+                {
                     "value": '动作链:输入文本'
                 },
                 {
@@ -217,10 +223,20 @@ locatOption_actionOption= {
 }
 
 # 当动作为此列表时,输入参数不能为空
-checkActionValue = {"输入":"","清空并输入":"","动作链:点击并输入":"","动作链:输入文本":"","登录":"示例:\nadm/Machloop@123","点击上传":"示例:\nD:/filepath","等待":"示例:\n1","执行js代码":"示例:\nconsole.log('hello world')","异步执行js代码":"示例:\nconsole.log('hello world')","初始化脚本":"示例:\nconsole.log('hello world')","断言当前页面url包含指定内容":"",'断言当前页面url不包含指定内容':"","断言当前页面title包含指定内容":"",'断言当前页面title不包含指定内容':""}
+checkActionValue = {"发送流量":"示例:\ntcpreplay -i ...","选择时间":"示例:\n最近n分钟","输入":"","清空并输入":"","动作链:点击并输入":"","动作链:点击清空并输入":"","动作链:输入文本":"",
+                    "登录":"示例:\nadm/Machloop@123","点击上传":"示例:\nD:/filepath","等待":"示例:\n1","动作链:按键":"",
+                    "执行js代码":"示例:\nconsole.log('hello world')","异步执行js代码":"示例:\nconsole.log('hello world')","初始化脚本":"示例:\nconsole.log('hello world')",
+                    "断言当前页面url包含指定内容":"",'断言当前页面url不包含指定内容':"","断言当前页面title包含指定内容":"",'断言当前页面title不包含指定内容':""}
 
 # 当定位模式为此列表时,定位值不能为空
 checkLocatValue = ["文本","ID","XPATH","CSS","自定义","文字识别"]
 
 # 目标检测选项
-yoloOption = ["1","2","3","4","5","6","7","8","9","10"]
+yoloOption = ["1","2","3","4","5","6","7","8","9","10","11"]
+
+# 键盘按键
+keysOption = ["ENTER","BACKSPACE","ESCAPE","SPACE","TAB","HOME","END","INSERT","DELETE", "PAGE_UP","PAGE_DOWN",
+              "CTRL_A","CTRL_C","CTRL_V","CTRL_X","CTRL_Z",
+              "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
+              "NUMPAD0","NUMPAD1","NUMPAD2","NUMPAD3","NUMPAD4","NUMPAD5","NUMPAD6","NUMPAD7","NUMPAD8","NUMPAD9"]
+

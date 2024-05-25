@@ -68,25 +68,23 @@ const isThemeActive = (themeFamily, color) => {
 
 onBeforeMount(() => {
     let theme = localStorage.getItem("theme")
-    let mode = localStorage.getItem("mode")
+    let mode = (localStorage.getItem("mode") == 'true')
     if (theme!==null && mode!=null) {
         onChangeTheme(theme, mode)
     }else{
         onChangeTheme('aura-light-noir', false)
     }
-
 });
 
 
 </script>
 
 <template>
-    <button  class="layout-config-button p-link" type="button" @click="onConfigButtonClick()">
-        <i  class="pi pi-cog"></i>
+    <button  class="p-link  layout-topbar-button" style=" position: absolute;right: 2%;" type="button" @click="onConfigButtonClick()">
+        <i  class="pi pi-palette"></i>
     </button>
-    <Sidebar v-model:visible="visible" position="right" class="layout-config-sidebar w-26rem" pt:closeButton="ml-auto">
+    <Dialog v-model:visible="visible" header="切换主题" :style="{ width: '25rem' }" position="topright" :modal="true" :draggable="false"  :dismissableMask="true">
         <div class="p-2">
-
             <section class="py-4 flex align-items-center justify-content-between border-bottom-1 surface-border">
                 <span :class="['text-xl font-semibold']">暗黑模式</span>
                 <InputSwitch :modelValue="layoutConfig.darkTheme.value" @update:modelValue="onDarkModeChange" />
@@ -105,6 +103,16 @@ onBeforeMount(() => {
                         @click="changeTheme('aura', 'noir')"
                     >
                         <span class="block h-1rem w-full" style="border-radius: 30px; background: linear-gradient(180deg, #0f172a 0%, rgba(0, 0, 0, 0.5) 100%)"></span>
+                    </button>
+                    <button
+                        :class="[
+                            'bg-transparent border-1 cursor-pointer p-2 w-3 flex align-items-center justify-content-center transition-all transition-duration-200',
+                            { 'border-primary': isThemeActive('aura', 'green'), 'hover:border-500 surface-border': !isThemeActive('aura', 'green') }
+                        ]"
+                        style="border-radius: 30px"
+                        @click="changeTheme('aura', 'green')"
+                    >
+                        <span class="block h-1rem w-full" style="border-radius: 30px; background: linear-gradient(180deg, #00BB7E 0%, rgba(0, 0, 0, 0.5) 100%)"></span>
                     </button>
                     <button
                         :class="[
@@ -139,7 +147,7 @@ onBeforeMount(() => {
                 </div>
             </section>
         </div>
-    </Sidebar>
+    </Dialog>
 </template>
 
 <style lang="scss" scoped></style>

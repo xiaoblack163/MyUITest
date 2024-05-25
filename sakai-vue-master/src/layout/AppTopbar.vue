@@ -1,13 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import AppConfig from './AppConfig.vue';
 import { useLayout } from '@/layout/composables/layout';
-import { useRouter } from 'vue-router';
 
 const { layoutConfig, onMenuToggle } = useLayout();
 
 const outsideClickListener = ref(null);
 const topbarMenuActive = ref(false);
-const router = useRouter();
 
 onMounted(() => {
     bindOutsideClickListener();
@@ -21,18 +20,7 @@ const logoUrl = computed(() => {
     return `/layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.webp`;
 });
 
-const onTopBarMenuButton = () => {
-    topbarMenuActive.value = !topbarMenuActive.value;
-};
-const onSettingsClick = () => {
-    topbarMenuActive.value = false;
-    router.push('/documentation');
-};
-const topbarMenuClasses = computed(() => {
-    return {
-        'layout-topbar-menu-mobile-active': topbarMenuActive.value
-    };
-});
+
 
 const bindOutsideClickListener = () => {
     if (!outsideClickListener.value) {
@@ -70,10 +58,13 @@ const isOutsideClicked = (event) => {
             <i class="pi pi-bars"></i>
         </button>
 
+
         <button class="p-link layout-topbar-menu-button layout-topbar-button" @click="onMenuToggle()">
             <i class="pi pi-ellipsis-v"></i>
         </button>
 
+
+        <app-config></app-config>
     </div>
 </template>
 

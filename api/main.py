@@ -19,6 +19,8 @@ from crud import m_detail_report
 from crud import m_test_env
 from crud import m_test_set
 from crud import m_test_log
+from crud import m_test_excel
+from crud import m_test_file
 
 from runTest import m_create_test_process
 
@@ -28,6 +30,8 @@ app = FastAPI()
 app.mount("/screenshot", StaticFiles(directory="screenshot"), name="screenshot")
 app.mount("/screencast", StaticFiles(directory="screencast"), name="screencast")
 app.mount("/yoloImages", StaticFiles(directory="yoloImages"), name="yoloImages")
+app.mount("/testFile", StaticFiles(directory="testFile"), name="testFile")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -87,25 +91,31 @@ async def get_operation_logs():
 async def locat_option():
     return m_local_action_option.locat_option
 
-# 初始化定位与动作映射，传递给前端
-@app.get("/init/step_data/locatOption_actionOption")
-async def action_option():
-    return m_local_action_option.locatOption_actionOption
-
-# check操作值是否为空，传递给前端
-@app.get("/init/step_data/check_action_value")
-async def action_option():
-    return m_local_action_option.checkActionValue
-
 # check定位值是否为空，传递给前端
 @app.get("/init/step_data/check_locat_value")
-async def action_option():
+async def checkLocatValue():
     return m_local_action_option.checkLocatValue
 
 # 目标检测选项，传递给前端
 @app.get("/init/step_data/yolo_option")
-async def action_option():
+async def yoloOption():
     return m_local_action_option.yoloOption
+
+# 初始化定位与动作映射，传递给前端
+@app.get("/init/step_data/locatOption_actionOption")
+async def locatOption_actionOption():
+    return m_local_action_option.locatOption_actionOption
+
+# check操作值是否为空，传递给前端
+@app.get("/init/step_data/check_action_value")
+async def checkActionValue():
+    return m_local_action_option.checkActionValue
+
+
+# 键盘按键选项，传递给前端
+@app.get("/init/step_data/key_option")
+async def keysOption():
+    return m_local_action_option.keysOption
 
 
 ################################################################
@@ -199,8 +209,8 @@ async def delete_step_data(step_data_id:str):
     return m_step_data.delete_step_data(step_data_id,modify_order=True)
 
 # 上传定位图片
-@app.post("/step_data/upload_file/{file_id}")
-async def upload_file(file_id: str,file: UploadFile = File(...)):
+@app.post("/step_data/upload_img/{file_id}")
+async def upload_img(file_id: str,file: UploadFile = File(...)):
     contents = await file.read()
     with open(f"locatImages/{file_id}.png",'wb') as f:
         f.write(contents)
@@ -363,6 +373,54 @@ async def write_test_set(test_set_option:m_test_set.testSetAndOption):
 @app.get("/test_log/{test_log_ip}")
 async def get_test_log(test_log_ip:str):
     return m_test_log.get_test_log(test_log_ip)
+
+########################################################################
+
+# 获取测试文档列表
+@app.get("/test_excels")
+async def get_test_excels():
+    return m_test_excel.get_test_excels()
+
+
+# 获取测试文档
+@app.get("/test_excel/{test_excel_id}")
+async def get_test_excel(test_excel_id:str):
+    return m_test_excel.get_test_excel(test_excel_id)
+
+
+# 添加测试文档
+@app.post("/test_excel")
+async def post_test_excel(test_excel:m_test_excel.TestExcel):
+    return m_test_excel.post_test_excel(test_excel)
+
+# 修改测试文档
+@app.put("/test_excel")
+async def put_test_excel(test_excel:m_test_excel.TestExcel):
+    return m_test_excel.put_test_excel(test_excel)
+
+# 删除测试文档
+@app.delete("/test_excel/{test_excel_id}")
+async def delete_test_excel(test_excel_id:str):
+    return m_test_excel.delete_test_excel(test_excel_id)
+
+########################################################################
+
+# 上传测试附件
+@app.post("/test_file")
+async def upload_file(file: UploadFile = File(...)):
+    file_name = file.filename
+    contents = await file.read()
+    return m_test_file.post_test_file(file_name, contents)
+
+# 获取测试附件列表
+@app.get("/test_file")
+async def get_test_files():
+    return m_test_file.get_test_files()
+
+# 删除测试附件
+@app.delete("/test_file/{test_file_id}")
+async def delete_test_files(test_file_id:str):
+    return m_test_file.delete_test_file(test_file_id)
 
 
 if __name__ == "__main__":

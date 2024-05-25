@@ -52,6 +52,11 @@ const router = createRouter({
                     path: '/uikit/runLog',
                     name: 'runLog',
                     component: () => import('@/views/uikit/runLog.vue')
+                },
+                {
+                    path: '/uikit/MyExcel',
+                    name: 'MyExcel',
+                    component: () => import('@/views/uikit/MyExcel.vue')
                 }
             ]
         },

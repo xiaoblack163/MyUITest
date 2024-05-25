@@ -22,7 +22,6 @@ def get_record_count():
 def get_fail_detail_report_record():
     with Session(engine) as session:
         result = session.exec(select(DetailReport.detailReportID,DetailReport.reportID,DetailReport.stepName,DetailReport.result,DetailReport.execDate).where(DetailReport.result==False).order_by(DetailReport.execDate.desc()).limit(12)).mappings().all()
-    print(result)
     return result
 
 # 获取近期测试报告
@@ -49,7 +48,6 @@ def get_report_trend_record():
         """)
         result = session.exec(statement).all()
         for i in result:
-            # print(i)
             report_trend_record["testDateList"].append(i[0].split(" ")[0])
             report_trend_record["passList"].append(sum(eval(i[2]).values()))
             report_trend_record["failList"].append(sum(eval(i[3]).values()))

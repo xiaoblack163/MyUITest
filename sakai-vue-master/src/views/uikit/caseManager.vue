@@ -225,8 +225,11 @@ const actionOption = ref(null);
 // 定位与操作映射
 const locatOption_actionOption = ref('');
 
-// 定位值
+// 定位模式(是否为目标检测)
 const locatMode = ref('');
+
+// 动作模式(是否为 动作链:按键)
+const ActionMode = ref('');
 
 // 校验定位值
 const checkLocatValue = ref('');
@@ -252,6 +255,7 @@ const getStepData = async (selecteStepData) => {
     stepData.value = await utilss.GetCaseStepTest(toast, selecteStepData.stepID);
     locatModeChangeMode.value = '获取步骤数据';
     locatMode.value = stepData.value.locatMode;
+    ActionMode.value = stepData.value.action;
 
     saveStepMode.value = 'PUT';
     toast.add({ severity: 'info', summary: '切换步骤', detail: selecteStepData.stepName, life: 3000 });
@@ -264,6 +268,7 @@ const getStepData = async (selecteStepData) => {
 // 提交步骤数据
 const saveData = () => {
     stepData.value.locatMode = locatMode;
+    stepData.value.action = ActionMode;
     if (stepData.value.stepID === '' || stepData.value.stepID === null) {
         toast.add({ severity: 'error', summary: '错误', detail: '步骤ID不能为空!', life: 3000 });
         return false;
@@ -306,8 +311,7 @@ const uploadFile = async (event) => {
     } else {
         const formData = new FormData();
         formData.append('file', event.files[0]);
-        console.log(event.files[0]);
-        utilss.uploadFile(toast, stepData.value.stepID, formData);
+        utilss.uploadStepImg(toast, stepData.value.stepID, formData);
     }
 };
 
@@ -345,13 +349,13 @@ const confirm2 = (event) => {
 
 const locatValue_active = ref(false);// 是否禁用请输入定位值选择框
 // 目标检测相关
-const yolo = ref(false);//当前定位方式是否为目标检测
+const yolo = ref(false);//当前定位方式为目标检测时，切换定位值选项框
 const yoloOption = ref([]);
-// #################################################################################
+
 watch(locatMode, (newValue) => {
     // 只有切换定位方式时清空数据,获取步骤时不清空
     if (locatModeChangeMode.value === '切换定位方式') {
-        stepData.value.action = '';
+        ActionMode.value = '';
         stepData.value.AssertOrActionValue = '';
         stepData.value.locatValue = '';
         stepData.value.yoloValue = '';
@@ -384,6 +388,19 @@ watch(locatMode, (newValue) => {
 });
 
 // #################################################################################
+// 按键选项
+const key = ref(false)//当前动作为键盘按键，切换输入值选项框
+const keyOption = ref([]);
+
+watch(ActionMode, (newValue) => {
+    if (newValue.value === '动作链:按键') {
+        key.value = true
+    }else{
+        key.value = false
+    }
+});
+
+// #################################################################################
 
 onBeforeMount(async () => {
     // 初始化功能
@@ -406,6 +423,9 @@ onBeforeMount(async () => {
 
     // 获取目标检测选项
     yoloOption.value = await utilss.GetYoloOption()
+
+    // 获取按键选项
+    keyOption.value = await utilss.GetKeyOption()
 });
 </script>
 
@@ -577,13 +597,14 @@ onBeforeMount(async () => {
                 <p class="text-color-secondary block mb-5">请输入操作与断言.</p>
                 <div class="formgrid grid">
                     <div class="field col-12  md:col-5">
-                        <CascadeSelect v-model="stepData.action" :options="actionOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择操作与断言" />
+                        <CascadeSelect v-model="ActionMode" :options="actionOption" style="width: 100%" optionLabel="value" optionGroupLabel="value" :optionGroupChildren="['states']" placeholder="请选择操作与断言" />
                     </div>
                     <div class="field col-12  md:col-5">
-                        <InputText id="lastname1" v-model="stepData.AssertOrActionValue" style="width: 100%" type="text" placeholder="请输入操作或断言参数" />
+                        <Textarea v-if="!key" v-model="stepData.AssertOrActionValue" placeholder="请输入操作或断言参数"  style="height: 50%;" />
+                        <Dropdown  v-if="key" v-model="stepData.AssertOrActionValue" :options="keyOption" placeholder="请选择按键"></Dropdown>
                     </div>
                     <div class="field col-12  md:col-2">
-                        <InputNumber v-model="stepData.preSleep" inputId="minmax-buttons" placeholder="执行前置等待" mode="decimal" showButtons :min="0" :max="100" />
+                        <InputNumber v-model="stepData.preSleep" inputId="minmax-buttons" placeholder="执行前等待时间" mode="decimal" showButtons :min="0" :max="100" />
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import time
+import time,platform
 
 from DrissionPage import ChromiumPage, ChromiumOptions
 
@@ -17,35 +17,53 @@ from runTest.m_sendFlow import sendFlow
 # 浏览器操作对象(执行测试步骤)
 class WebDriver:
     def __init__(self,testEnv,testSet,stop_skip_event,formatLog):
-        # 创建页面对象
-        co = ChromiumOptions()
-        co.auto_port()
-        # co.ignore_certificate_errors(True)
-        if testSet["runMode"] == "无头模式":
-            # co.ignore_certificate_errors(True)
+        
+        # 初始化页面配置
+        # 如果是linux
+        if platform.system() == "Linux": 
+            co = ChromiumOptions()
+            co.auto_port()
+            co.ignore_certificate_errors(True)
+            co.set_argument("--headless=new")
+            co.set_argument("--no-sandbox")
             co.set_argument('--window-size', '1920,1080')
-            co.headless(True)
-        else:
-            co.set_argument('--start-maximized')
+        # 如果是windows
+        else:                               
+            co = ChromiumOptions()
+            co.auto_port()
+            if testSet["runMode"] == "无头模式":
+                co.set_argument('--window-size', '1920,1080')
+                co.headless(True)
+            else:
+                co.set_argument('--start-maximized')
+
+        # 创建页面对象
         self.page = ChromiumPage(co)
         self.testEnv = testEnv
         self.testSet = testSet
         self.stop_skip_event = stop_skip_event
         self.formatLog = formatLog
         self.mapping_action = {
-            "无需定位":{"发送流量":self.sendFlow,"访问网页":self.get_url,"登录":self.login,"退出登录":self.logout,"刷新页面":self.refresh,"初始化脚本":self.tag_add_init_js,"等待":self.sleep,"断言当前页面url包含指定内容":self.assert_url_exclude,"断言当前页面url不包含指定内容":self.assert_url_not_exclude,"断言当前页面title包含指定内容":self.assert_title_exclude,"断言当前页面title不包含指定内容":self.assert_title_not_exclude},
-            "文字识别":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言元素出现在页面上":self.xy_assert_find_xy,"断言元素未出现在页面上":self.xy_assert_not_find_xy},
-            "目标检测":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言元素出现在页面上":self.xy_assert_find_xy,"断言元素未出现在页面上":self.xy_assert_not_find_xy},
-            "绝对坐标":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key},
-            "图像识别":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言图像在当前页面已出现":self.xy_assert_find_img,"断言图像在当前页面未出现":self.xy_assert_not_find_img},
-            "文本": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.tag_assert_find_ele,"断言元素未出现在页面上":self.tag_assert_not_find_ele},
-            "ID":{"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.tag_assert_find_ele,"断言元素未出现在页面上":self.tag_assert_not_find_ele},
-            "XPATH": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.tag_assert_find_ele,"断言元素未出现在页面上":self.tag_assert_not_find_ele},
-            "CSS": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.tag_assert_find_ele,"断言元素未出现在页面上":self.tag_assert_not_find_ele},
-            "自定义":{"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.tag_assert_find_ele,"断言元素未出现在页面上":self.tag_assert_not_find_ele}
+            "无需定位":{"发送流量":self.sendFlow,"访问网页":self.get_url,"登录":self.login,"退出登录":self.logout,"刷新页面":self.refresh,"初始化脚本":self.tag_add_init_js,"等待":self.sleep,"选择时间":self.select_time,"断言当前页面url包含指定内容":self.assert_url_exclude,"断言当前页面url不包含指定内容":self.assert_url_not_exclude,"断言当前页面title包含指定内容":self.assert_title_exclude,"断言当前页面title不包含指定内容":self.assert_title_not_exclude},
+            "文字识别":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:点击清空并输入":self.xy_cilck_clear_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "目标检测":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:点击清空并输入":self.xy_cilck_clear_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "绝对坐标":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:点击清空并输入":self.xy_cilck_clear_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key},
+            "图像识别":{"动作链:点击":self.xy_click,"动作链:右击":self.xy_r_click,"动作链:点击并输入":self.xy_cilck_input,"动作链:点击清空并输入":self.xy_cilck_clear_input,"动作链:输入文本":self.xy_input,"动作链:移动鼠标":self.xy_move_to,"动作链:滚动滚轮":self.xy_scroll,"动作链:单击鼠标中键":self.xy_m_click,"动作链:双击左键":self.xy_db_click,"动作链:按键":self.xy_key,"断言图像在当前页面已出现":self.assert_find_ele,"断言图像在当前页面未出现":self.assert_not_find_ele},
+            "文本": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "ID":{"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "XPATH": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "CSS": {"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele},
+            "自定义":{"点击": self.tag_click, "右击": self.tag_click_right,"双击": self.tag_double_click,"点击偏移":self.tag_click_at,"点击上传":self.tag_to_upload,"点击新标签页":self.tag_for_new_tab,"点击并切换到新标签页":self.tag_for_new_tab_and_change,"输入":self.tag_input,"清空":self.tag_clear,"清空并输入":self.tag_clear_input,"拖拽":self.tag_drag,"拖拽至":self.tag_drag_to,"悬停":self.tag_hover,"设置value":self.tag_set_value,"选中":self.tag_check,"执行js代码":self.tag_run_js,"异步执行js代码":self.tag_run_async_js,"初始化脚本":self.tag_add_init_js,"滚动至元素可见":self.tag_scroll_to_see,"选择文本":self.tag_select_by_text,"移动鼠标至元素":self.tag_move_to_ele,"断言元素出现在页面上":self.assert_find_ele,"断言元素未出现在页面上":self.assert_not_find_ele}
         }
-        
+        self.mapping_key = {"ENTER":Keys.ENTER, "BACKSPACE":Keys.BACKSPACE,"ESCAPE":Keys.ESCAPE,"SPACE":Keys.SPACE,"TAB":Keys.TAB,
+                  "HOME":Keys.HOME,"END":Keys.END,"INSERT":Keys.INSERT,"DELETE":Keys.DELETE, "PAGE_UP":Keys.PAGE_UP,"PAGE_DOWN":Keys.PAGE_DOWN,
+                  "CTRL_A":Keys.CTRL_A,"CTRL_C":Keys.CTRL_C,"CTRL_V":Keys.CTRL_V,"CTRL_X":Keys.CTRL_X,"CTRL_Z":Keys.CTRL_Z,
+                  "F1":Keys.F1,"F2":Keys.F2,"F3":Keys.F3,"F4":Keys.F4,"F5":Keys.F5,"F6":Keys.F6,"F7":Keys.F7
+                  ,"F8":Keys.F8,"F9":Keys.F9,"F10":Keys.F10,"F11":Keys.F11,"F12":Keys.F12,
+                  "NUMPAD0":Keys.NUMPAD0,"NUMPAD1":Keys.NUMPAD1,"NUMPAD2":Keys.NUMPAD2,"NUMPAD3":Keys.NUMPAD3,"NUMPAD4":Keys.NUMPAD4,
+                  "NUMPAD5":Keys.NUMPAD5,"NUMPAD6":Keys.NUMPAD6,"NUMPAD7":Keys.NUMPAD7,"NUMPAD8":Keys.NUMPAD8,"NUMPAD9":Keys.NUMPAD9}
         self.stepdata = None
+
 
     # 执行测试步骤
     def start_step(self,stepdata):
@@ -58,7 +76,7 @@ class WebDriver:
     # 设置停止或者跳过用例
     def set_stop_skip_event(self,FailAction):
         eventAction = self.testSet.get(FailAction)
-        self.formatLog.writeStepLog("Warn",self.stepdata["stepName"],eventAction)
+        self.formatLog.writeStepLog("WARN",self.stepdata["stepName"],eventAction)
         if eventAction == "停止测试":
             self.stop_skip_event["stop_event"].set()
         elif eventAction == "跳过用例":
@@ -196,6 +214,9 @@ class WebDriver:
 
     # 登录
     def login(self):
+        if "网络全流量溯源" in self.page.title:
+            self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"已经登录")
+            return True
         for i in range(self.testSet["loginRetry"]):
             self.login0()
             if self.page.ele('登录失败',timeout=1):
@@ -204,6 +225,7 @@ class WebDriver:
                 self.login0()
             else:
                 self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"登录成功")
+                time.sleep(2)
                 return True
         else:
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"登录失败 结束测试")
@@ -214,7 +236,21 @@ class WebDriver:
     def logout(self):
         self.page.set.cookies.clear()
         self.page.refresh()
+        return True
 
+    # 选择时间
+    def select_time(self):
+        Interval_time = int(self.stepdata["AssertOrActionValue"].replace("最近","").replace("分钟",""))
+        starttime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime( time.time() - Interval_time * 60))
+        endtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始选择时间")
+        self.page.ele('.^timeSliderWrap').click()
+        self.page.ele('tag:input@placeholder:开始日期').input(starttime,clear=True)
+        self.page.ele('tag:input@placeholder:结束日期').input(endtime,clear=True)
+        self.page.ele('确 定').click()
+        self.page.ele('应 用').click()
+        self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"选择时间成功:"+starttime+"; "+endtime)
+        return True
 
     # 查找元素
     def locatElement(self):
@@ -233,7 +269,7 @@ class WebDriver:
                 else:
                     return eles[self.stepdata["elementNumber"] -1]
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
-            raise
+            return
         ################################
         locatMode =self.stepdata["locatMode"].replace("ID","#").replace("XPATH","xpath:").replace("CSS","css:").replace("自定义","")
         if locatMode in ['#','xpath:','css:','']:
@@ -247,7 +283,7 @@ class WebDriver:
                 else:
                     return eles[self.stepdata["elementNumber"] -1]
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
-            raise
+            return
         ################################
         if locatMode == '文字识别':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始文字识别..")
@@ -268,7 +304,7 @@ class WebDriver:
                     self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y)+" 当前置信度:"+str(currentConfidence))
                     return (next_x,next_y)
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
-            raise
+            return 
         ################################
         if locatMode == '目标检测':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始目标检测..")
@@ -284,7 +320,7 @@ class WebDriver:
                     self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y))
                     return (next_x,next_y)
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
-            raise
+            return 
         ################################
         if locatMode == '绝对坐标':
             self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"开始定位绝对坐标..")
@@ -308,7 +344,7 @@ class WebDriver:
                     self.formatLog.writeStepLog("INFO",self.stepdata["stepName"],"定位到的xy坐标:"+str(next_x)+","+str(next_y))
                     return (next_x,next_y)
             self.formatLog.writeStepLog("FAIL",self.stepdata["stepName"],"未找到元素")
-            raise
+            return 
         ################################
         self.formatLog.writeStepLog("ERROR",self.stepdata["stepName"],"未知的定位方式")
         raise "未知的定位方式"
@@ -339,7 +375,7 @@ class WebDriver:
 
     # 标签 此方法用于点击元素，触发文件选择框并把指定的文件路径添加到网页
     def tag_to_upload(self):
-        self.locatElement().click.to_upload(self.stepdata["AssertOrActionValue"])
+        self.locatElement().click.to_upload("testFile/"+self.stepdata["AssertOrActionValue"])
         return True
     
     # 标签 在预期点击后会出现新 tab 的时候，可用此方法点击，会等待并返回新 tab 对象。
@@ -446,6 +482,14 @@ class WebDriver:
         self.page.actions.move_to(self.locatElement()).input(self.stepdata["AssertOrActionValue"])
         return True
     
+    # 坐标 点击清空并输入
+    def xy_cilck_clear_input(self):
+        self.page.actions.move_to(self.locatElement()).click()
+        self.page.actions.type(Keys.CTRL_A)
+        self.page.actions.type(Keys.BACKSPACE)
+        self.page.actions.input(self.stepdata["AssertOrActionValue"])
+        return True
+
     # 坐标 移动鼠标坐标
     def xy_move_to(self):
         self.page.actions.move_to(self.locatElement())
@@ -473,11 +517,11 @@ class WebDriver:
 
    # 坐标 按键
     def xy_key(self):
-        self.page.actions.type(Keys.ENTER)
+        self.page.actions.type(self.mapping_key[self.stepdata["AssertOrActionValue"]])
         return True
 
 
-##################################################################################
+####################################断言##############################################
 
     # 无需定位 断言 此方法用于等待 url 变成包含指定文本。
     def assert_url_exclude(self):
@@ -499,43 +543,16 @@ class WebDriver:
 
 
     # 标签 断言 定位元素在当前页面出现
-    def tag_assert_find_ele(self):
+    def assert_find_ele(self):
         if self.locatElement():
             return True
         else:
             return False
         
     # 标签 断言 定位元素在当前页面未出现
-    def tag_assert_not_find_ele(self):
+    def assert_not_find_ele(self):
         if self.locatElement():
             return False
         else:
             return True
 
-    # 坐标 断言 定位元素的坐标在当前页面出现
-    def xy_assert_find_xy(self):
-        if self.locatElement():
-            return True
-        else:
-            return False
-        
-    # 坐标 断言 定位元素的坐标在当前页面未出现
-    def xy_assert_not_find_xy(self):
-        if self.locatElement():
-            return False
-        else:
-            return True
-
-    # 坐标 断言 图像在当前页面出现
-    def xy_assert_find_img(self):
-        if self.locatElement():
-            return True
-        else:
-            return False
-        
-    # 坐标 断言 定位元素的坐标未出现
-    def xy_assert_not_find_img(self):
-        if self.locatElement():
-            return False
-        else:
-            return True

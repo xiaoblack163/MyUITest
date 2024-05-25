@@ -93,3 +93,13 @@ class TestLog(SQLModel, table=True):
     reportID:  str = Field(default=None, primary_key=True)
     testLog: str
 
+# 测试文档表
+class TestExcel(SQLModel, table=True):
+    excelID:  str = Field(default=None, primary_key=True)
+    excelName: str
+    excelData: str
+
+# 测试附件表
+class TestFile(SQLModel, table=True):
+    fileID:  str = Field(default=None, primary_key=True)
+    fileName: str
