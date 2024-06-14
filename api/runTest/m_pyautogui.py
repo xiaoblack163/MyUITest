@@ -3,6 +3,7 @@ from PIL import Image
 import io
 
 
+
 def get_image(img_binary,image_path,confidence,formatLog):
     try:
         # 使用io.BytesIO创建一个字节流

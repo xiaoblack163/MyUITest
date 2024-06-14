@@ -54,8 +54,8 @@ const confirm2 = (event,fileID) => {
 // 导航栏
 import { useLayout } from '@/layout/composables/layout';
 const { layoutConfig } = useLayout();
-const apitestUrl = computed(() => {
-    return `/layout/images/${layoutConfig.darkTheme.value ? 'apitest-dark' : 'apitest-white'}.png`;
+const uitestUrl = computed(() => {
+    return `/layout/images/${layoutConfig.darkTheme.value ? 'uitest-dark' : 'uitest-white'}.png`;
 });
 import AppMenuItem from './AppMenuItem.vue';
 const model = ref([
@@ -132,7 +132,7 @@ const model = ref([
             {
                 label: '接口自动化',
                 icon: 'pi pi-fw pi-link',
-                url: 'http://10.0.0.101:65433',
+                url: 'http://10.0.146.102:58080',
                 target: '_blank'
             }
         ]
@@ -169,8 +169,8 @@ const model = ref([
             <app-menu-item :item="item" :index="i"></app-menu-item>
         </template>
         <li>
-            <a target="_blank" href="http://10.0.0.101:65433">
-                <img :src="apitestUrl" alt="Prime Blocks" class="w-full mt-3" />
+            <a target="_blank" href="/">
+                <img :src="uitestUrl" alt="Prime Blocks" class="w-full mt-3" />
             </a>
         </li>
     </ul>

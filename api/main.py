@@ -1,9 +1,10 @@
 from fastapi import FastAPI,File,UploadFile,Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from MyUITestDB.db import create_db_and_tables
-
+import tkinter
 
 from crud import m_dash_board
 from crud import m_operation_log
@@ -27,19 +28,26 @@ from runTest import m_create_test_process
 createTestExecutor = createTestExecutor =  m_create_test_process.Create_TestExecutor()
 # app = FastAPI(docs_url=None, redoc_url=None)
 app = FastAPI()
+
+# 后端文件
 app.mount("/screenshot", StaticFiles(directory="screenshot"), name="screenshot")
 app.mount("/screencast", StaticFiles(directory="screencast"), name="screencast")
 app.mount("/yoloImages", StaticFiles(directory="yoloImages"), name="yoloImages")
 app.mount("/testFile", StaticFiles(directory="testFile"), name="testFile")
 
+# 前端文件
+app.mount("/assets", StaticFiles(directory="templates/assets"), name="assets")
+app.mount("/layout", StaticFiles(directory="templates/layout"), name="layout")
+app.mount("/themes", StaticFiles(directory="templates/themes"), name="themes")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 跨域
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 
 
@@ -49,7 +57,10 @@ app.add_middleware(
 async def on_startup():
     return create_db_and_tables()
 
-
+# 响应前端界面
+@app.get("/")
+def read_root():
+    return FileResponse("templates/index.html")
 
 # 仪表盘数据
 ################################################################
@@ -426,7 +437,7 @@ async def delete_test_files(test_file_id:str):
 if __name__ == "__main__":
     import uvicorn
     # createTestExecutor =  m_create_test_process.Create_TestExecutor() #多进程必须放在在此执行
-    uvicorn.run(app, host="127.0.0.1", port=58000)
+    uvicorn.run(app, host="0.0.0.0", port=65437)
 
     # pip install fastapi sqlmodel uvicorn
     # uvicorn main:app

@@ -27,6 +27,8 @@
 // npm i sortablejs -S
 import Sortable from 'sortablejs';
 import { ref, nextTick, onBeforeMount } from 'vue';
+import { inject } from 'vue';
+const storee = inject('storee');
 
 // 有几个元素就有几个功能可以展开
 const sortData = ref([{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]);
@@ -68,7 +70,7 @@ interface ChildDropEndType extends ParentDropEndType {
 
 
 const putSortData = (sortData) => {
-    fetch('http://localhost:58000/test_order', {
+    fetch(storee.host+'/test_order', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({"testOrderData":sortData})
@@ -150,7 +152,7 @@ onBeforeMount(async () => {
     setTimeout(() => {
         setSort();// 设置排序
     }, 1000);
-    fetch('http://localhost:58000/test_order', {
+    fetch(storee.host+'/test_order', {
         method: 'GET'
     })
         .then((response) => response.json())

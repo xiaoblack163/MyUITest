@@ -1,0 +1,7 @@
+
+OSError: [WinError 126] 找不到指定的模块。 Error loading "C:\Users\root\.virtualenvs\uiTest-XvJa8vFW\lib\site-packages\torch\lib\c10.dll" or one of its dependencies.
+下载安装 https://aka.ms/vs/16/release/vc_redist.x64.exe 
+
+OMP:Error #15:Initalizing libiomp5md.dll,but found libiomp5md.dl1 already initialized.
+paddlepaddle与torch冲突
+将site-package/torch/lib 下面的libiomp5md.dll重命名为libiomp5md2.dll
