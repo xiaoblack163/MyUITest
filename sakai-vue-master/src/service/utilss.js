@@ -1,6 +1,6 @@
 import {reactive} from "vue";
 import storee from "./storee.js"
-
+import { v4 as uuidv4 } from 'uuid';
 
 
 const Utilss=reactive({
@@ -87,7 +87,7 @@ const Utilss=reactive({
         fetch(storee.host + '/func_test', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({"funcName":funcName,"funcID":crypto.randomUUID()})
+            body: JSON.stringify({"funcName":funcName,"funcID":uuidv4()})
         })
             .then((response) => response.json())
             .then((data) => {

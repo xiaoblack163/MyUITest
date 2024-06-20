@@ -47,6 +47,7 @@ import { ref, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast'; // 弹出提示
 const toast = useToast(); // 弹出提示
 import { inject } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const utilss = inject('utilss');
 const univerRef = ref(null);
@@ -98,12 +99,12 @@ const PostExcelData = () => {
     return false;
   }
   utilss.PostExcelData(toast,{
-            excelID: crypto.randomUUID(),
+            excelID: uuidv4(),
             excelName: PostExcelName.value,
             excelData:
                 `{
 		"id": "` +
-                crypto.randomUUID() +
+                uuidv4() +
                 `",
 		"sheetOrder": [
 		  "sheet-01"

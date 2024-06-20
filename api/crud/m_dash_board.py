@@ -43,7 +43,7 @@ def get_report_trend_record():
         SELECT Report.testDate, DetailChart.reportID,DetailChart.passNumber,DetailChart.failNumber
             FROM Report
         JOIN DetailChart ON Report.reportID = DetailChart.reportID
-        ORDER BY Report.reportID DESC
+        ORDER BY Report.testDate DESC
         LIMIT 7;
         """)
         result = session.exec(statement).all()
@@ -51,4 +51,7 @@ def get_report_trend_record():
             report_trend_record["testDateList"].append(i[0].split(" ")[0])
             report_trend_record["passList"].append(sum(eval(i[2]).values()))
             report_trend_record["failList"].append(sum(eval(i[3]).values()))
+        report_trend_record["testDateList"].reverse()
+        report_trend_record["passList"].reverse()
+        report_trend_record["failList"].reverse()
     return report_trend_record

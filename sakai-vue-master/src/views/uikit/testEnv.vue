@@ -50,7 +50,7 @@ import { inject } from 'vue';
 const utilss = inject('utilss');
 import { useToast } from 'primevue/usetoast'; // 弹出提示
 const toast = useToast(); // 弹出提示
-
+import { v4 as uuidv4 } from 'uuid';
 // 当前选择的测试环境
 const selectedEnv = ref('');
 
@@ -78,12 +78,14 @@ const addEnv = () => {
     }
     if (selectedEnv.value.testEnvIP === undefined) {
         testEnvData.value = {
-            testEnvID: crypto.randomUUID(),
+            testEnvID: uuidv4(),
+            // testEnvID: crypto.randomUUID(),
             testEnvIP: selectedEnv.value,
             sendFlowHostName: '',
             sendFlowUserName: '',
             sendFlowPassWord: '',
         };
+        // console.log(testEnvData.value)
         utilss.PostTestEnv(toast, testEnvData.value);
     } else {
         toast.add({ severity: 'info', summary: '信息', detail: '环境已存在!', life: 3000 });

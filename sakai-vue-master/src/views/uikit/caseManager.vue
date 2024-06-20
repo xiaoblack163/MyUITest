@@ -8,7 +8,7 @@ const utilss = inject('utilss');
 
 import { useToast } from 'primevue/usetoast'; // 弹出提示
 const toast = useToast(); // 弹出提示
-
+import { v4 as uuidv4 } from 'uuid';
 // #################################################################################
 
 const op2 = ref(); // 弹窗2
@@ -108,7 +108,7 @@ const crudFuncOrCase = async () => {
     }
     switch (ActionDig.value) {
         case '添加测试用例':
-            let tmpcaseID = crypto.randomUUID();
+            let tmpcaseID = uuidv4();
             console.log('添加测试用例', FuncID.value, '输入值:', DigInput1.value);
             utilss.PostCaseTest(toast, FuncID.value, DigInput1.value, tmpcaseID);
             // utilss.PostStepOrder(toast,tmpcaseID)
@@ -171,7 +171,7 @@ const stepfuncs = [
         icon: 'pi pi-plus',
         command: () => {
             stepData.value = {
-                stepID: crypto.randomUUID(),
+                stepID: uuidv4(),
                 stepName: '',
                 locatMode: '',
                 locatValue: '',
