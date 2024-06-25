@@ -57,7 +57,8 @@ const casefuncs = [
         label: '添加测试用例',
         icon: 'pi pi-plus',
         command: () => {
-            if (event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0] === '全部功能') {
+            // console.log(event.target.outerHTML.split("<span id=\"")[1].split("_")[0])
+            if (event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[0] === '全部功能') {
                 toast.add({ severity: 'info', summary: '信息', detail: '请选择具体测试功能!', life: 3000 });
                 return false;
             }
@@ -65,14 +66,14 @@ const casefuncs = [
             showDig.value = true;
             modeName.value = '用例';
             ActionDig.value = '添加测试用例';
-            FuncID.value = event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1];
+            FuncID.value = event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[1];
         }
     },
     {
         label: '删除测试用例',
         icon: 'pi pi-trash',
         command: () => {
-            if (event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0] === '全部功能') {
+            if (event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[0] === '全部功能') {
                 toast.add({ severity: 'info', summary: '信息', detail: '请选择具体测试功能!', life: 3000 });
                 return false;
             }
@@ -80,14 +81,14 @@ const casefuncs = [
             modeName.value = '用例';
             ActionDig.value = '删除测试用例';
             // console.log('删除测试用例', event.target.__vueParentComponent.attrs.id.split('_')[0]);
-            FuncID.value = event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1];
+            FuncID.value = event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[1];
         }
     },
     {
         label: '重命名测试用例',
         icon: 'pi pi-eraser',
         command: () => {
-            if (event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0] === '全部功能') {
+            if (event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[0] === '全部功能') {
                 toast.add({ severity: 'info', summary: '信息', detail: '请选择具体测试功能!', life: 3000 });
                 return false;
             }
@@ -95,7 +96,7 @@ const casefuncs = [
             modeName.value = '用例';
             ActionDig.value = '重命名测试用例';
             // console.log('重命名用例', event.target.__vueParentComponent.attrs.id.split('_')[0]);
-            FuncID.value = event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1];
+            FuncID.value = event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[1];
         }
     }
 ];
@@ -183,9 +184,9 @@ const stepfuncs = [
                 AssertOrActionValue: '',
                 preSleep:0,
                 stepInfo: '',
-                caseID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[1],
-                caseName: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[0],
-                funcID: event.target.__vueParentComponent.attrs.id.split('_')[0].split('<->')[2]
+                caseID: event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[1],
+                caseName: event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[0],
+                funcID: event.target.outerHTML.split("<span id=\"")[1].split("_")[0].split('<->')[2]
             };
             saveStepMode.value = 'POST';
             console.log('添加测试步骤', stepData);
@@ -500,7 +501,7 @@ onBeforeMount(async () => {
                     </ButtonGroup>
                 </div>
                 <div class="field">
-                    <SplitButton :model="casefuncs" @click="toggle2($event)" :key="funcNameID.funcID" :id="funcNameID.funcName + '<->' + funcNameID.funcID">
+                    <SplitButton :model="casefuncs" @click="toggle2($event)" :key="funcNameID.funcID" :myid="funcNameID.funcName + '<->' + funcNameID.funcID" :id="funcNameID.funcName + '<->' + funcNameID.funcID">
                         <span class="flex align-items-center font-bold">
                             <i class="pi pi-th-large" style="height: 1rem; margin-right: 0.5rem"></i>
                             <span>{{ funcNameID.funcName }}</span>

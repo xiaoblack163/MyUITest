@@ -4,7 +4,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from MyUITestDB.db import create_db_and_tables
-import tkinter
 
 from crud import m_dash_board
 from crud import m_operation_log
@@ -41,13 +40,13 @@ app.mount("/layout", StaticFiles(directory="templates/layout"), name="layout")
 app.mount("/themes", StaticFiles(directory="templates/themes"), name="themes")
 
 # 跨域
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 
@@ -283,6 +282,12 @@ async def get_step_data(funcID:str,caseID:str):
 async def get_run_case_tree_data():
     return m_test_order.get_run_case_tree_data()
 
+@app.get("/run_case_status")
+async def run_case_status():
+    if createTestExecutor.shared_data.get("run_status"):
+        return "测试任务运行中 请等待.."
+    else:
+        return "没有测试任务"
 
 # 执行测试
 @app.post("/run_case")
@@ -437,7 +442,7 @@ async def delete_test_files(test_file_id:str):
 if __name__ == "__main__":
     import uvicorn
     # createTestExecutor =  m_create_test_process.Create_TestExecutor() #多进程必须放在在此执行
-    uvicorn.run(app, host="0.0.0.0", port=65437)
+    uvicorn.run(app, host="0.0.0.0", port=58000)
 
     # pip install fastapi sqlmodel uvicorn
     # uvicorn main:app
