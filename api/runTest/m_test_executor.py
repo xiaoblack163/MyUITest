@@ -97,7 +97,7 @@ class TestExecutor:
             testDate=self.testDate,
             testFuncs=json.dumps([funcTest["funcName"] for funcTest in self.test_order_data],ensure_ascii=False),
             activity= int((self.shared_data["activity"]["testedNumber"]/self.shared_data["activity"]["stepNumber"])*100),
-            result=bool(self.shared_data["activity"]["stepNumber"]==self.shared_data["activity"]["passNumber"])
+            result=bool(0==self.shared_data["activity"]["execFailNumber"]) and bool(0==self.shared_data["activity"]["assertFailNumber"]) 
         )
         post_report(reportData)
 
@@ -148,8 +148,7 @@ class TestExecutor:
         post_detail_report(detailReporttData)
 
     # 执行测试步骤
-    def exec_step(self,StepTest,funcTest):
-        retry = False # 重新执行步骤
+    def exec_step(self,StepTest,funcTest,retry):
         try:
             self.shared_data["activity"]["testedNumber"] += 1 #已测步骤加1
             stepdata = get_step_data_join(StepTest["stepID"]) # 读取步骤相关信息
@@ -162,6 +161,8 @@ class TestExecutor:
                 self.shared_data["activity"]["passNumber"] += 1 #通过数加1
                 self.shared_data["funcChart"]["passNumber"][funcTest["funcName"]] += 1# 测试功能通过数加1
                 self.formatLog.writeStepLog("PASS",StepTest["stepName"],"执行步骤成功")
+                self.writeDetailReport(stepdata) #写入测试步骤结果
+                self.webdriver.start_screenshot(stepdata["detailReportID"]) # 步骤执
             else:
                 stepdata["result"] = False  #断言失败加1
                 stepdata["execInfo"] = "断言失败"  #断言失败信息
@@ -169,24 +170,42 @@ class TestExecutor:
                 self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
                 self.formatLog.writeStepLog("FAIL",StepTest["stepName"],"断言失败")
                 self.webdriver.set_stop_skip_event("assertFailAction") # 设置停止或者跳过用例
+                self.writeDetailReport(stepdata) #写入测试步骤结果
+                self.webdriver.start_screenshot(stepdata["detailReportID"]) # 步骤执
         except Exception as e:
+            self.formatLog.writeStepLog("WARN",StepTest["stepName"],"步骤执行失败:"+str(e))
             if "元素对象已失效" in str(e):
-                self.formatLog.writeStepLog("WARN",StepTest["stepName"],"步骤执行失败:"+str(e))
+                if retry:
+                    stepdata["result"] = False  #步骤执行失败
+                    stepdata["execInfo"] = "执行失败"+str(e)  #步骤执行失败信息
+                    self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
+                    self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
+                    self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
+                    self.writeDetailReport(stepdata) #写入测试步骤结果
+                    self.webdriver.start_screenshot(stepdata["detailReportID"]) # 步骤执行完截图
                 self.formatLog.writeLog("WARN","重新执行此步骤..")
-                time.sleep(5)
-                self.exec_step(StepTest,funcTest) # 重新执行步骤
-                retry = True
-                return
-            stepdata["result"] = False  #步骤执行失败加1
-            stepdata["execInfo"] = "执行失败"  #步骤执行失败信息
-            self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
-            self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
-            self.formatLog.writeStepLog("ERROR",StepTest["stepName"],"步骤执行失败:"+str(e))
-            self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
-        finally:
-            if not retry: # 如果不是重试则执行finally
+                return "重新执行此步骤.."
+            elif "该元素没有位置及大小" in str(e):
+                if retry:
+                    stepdata["result"] = False  #步骤执行失败
+                    stepdata["execInfo"] = "执行失败"+str(e)  #步骤执行失败信息
+                    self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
+                    self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
+                    self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
+                    self.writeDetailReport(stepdata) #写入测试步骤结果
+                    self.webdriver.start_screenshot(stepdata["detailReportID"]) # 步骤执行完截图
+                self.formatLog.writeLog("WARN","重新执行上一个步骤..")
+                return "重新执行上一个步骤.."
+            else:
+                stepdata["result"] = False  #步骤执行失败
+                stepdata["execInfo"] = "执行失败"+str(e)  #步骤执行失败信息
+                self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
+                self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
+                self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
                 self.writeDetailReport(stepdata) #写入测试步骤结果
                 self.webdriver.start_screenshot(stepdata["detailReportID"]) # 步骤执行完截图
+
+                
 
     # 执行测试
     def runTest(self):
@@ -198,7 +217,7 @@ class TestExecutor:
                 self.formatLog.change_caseName(caseTest["caseName"])
                 self.formatLog.writeLog("INFO","测试用例开始执行")
                 self.webdriver.start_screencast() # 开始录屏 测试用例为单位
-                for StepTest in caseTest["grandchild"]:
+                for i,StepTest in enumerate(caseTest["grandchild"]):
                     if self.stop_skip_event["stop_event"].is_set():
                         self.webdriver.stop_screencast(self.testID+caseTest["caseID"]) # 停止录屏
                         self.done()
@@ -209,7 +228,22 @@ class TestExecutor:
                         self.formatLog.writeLog("WARN","捕捉到跳过用例信号，测试用例跳过")
                         break 
                     self.formatLog.writeLog("INFO","测试步骤开始执行")
-                    self.exec_step(StepTest,funcTest) # 执行测试步骤
+                    result = self.exec_step(StepTest,funcTest,False) # 执行测试步骤
+                    if result == '重新执行此步骤..':
+                        time.sleep(5)
+                        self.exec_step(StepTest,funcTest,True) # 重新执行此测试步骤
+                    elif result == '重新执行上一个步骤..':
+                        if i> 1:
+                            time.sleep(5)
+                            self.exec_step(caseTest["grandchild"][i-1],funcTest,True) # 重新执行上一测试步骤
+                            time.sleep(5)
+                            self.exec_step(StepTest,funcTest,True) # 重新执行此测试步骤
+                        else:
+                            self.shared_data["activity"]["execFailNumber"] += 1 #执行失败加1
+                            self.shared_data["funcChart"]["failNumber"][funcTest["funcName"]] += 1 # 测试功能失败数加1
+                            self.webdriver.set_stop_skip_event("execFailAction") # 设置停止或者跳过用例
+                    else:
+                        ...
                 self.webdriver.stop_screencast(self.testID+caseTest["caseID"]) # 停止录屏
         self.done()
 
